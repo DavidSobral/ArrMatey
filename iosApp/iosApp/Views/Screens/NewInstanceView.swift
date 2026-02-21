@@ -56,7 +56,7 @@ struct NewInstanceView: View {
             onIsSlowInstanceChanged: { viewModel.setIsSlowInstance($0) },
             onCustomTimeoutChanged: { viewModel.setCustomTimeout($0) },
             onHeadersChanged: { viewModel.updateHeaders($0) },
-            onTestConnection: { viewModel.testConnection(selectedInstanceType) },
+            onTestConnection: { viewModel.testConnection(instanceType) },
             onDismissInfoCard: { viewModel.dismissInfoCard($0) },
             showInfoCard: showInfoCard,
             showInstancePicker: true,
