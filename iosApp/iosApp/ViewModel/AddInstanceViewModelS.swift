@@ -62,8 +62,8 @@ class AddInstanceViewModelS: ObservableObject {
         viewModel.dismissInfoCard(instanceType: type)
     }
     
-    func testConnection() {
-        viewModel.testConnection()
+    func testConnection(_ type: InstanceType) {
+        viewModel.testConnection(type: type)
     }
     
     func createInstance(_ type: InstanceType) {

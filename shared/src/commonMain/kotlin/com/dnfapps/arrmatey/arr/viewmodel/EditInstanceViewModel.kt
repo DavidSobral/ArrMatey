@@ -99,6 +99,7 @@ class EditInstanceViewModel(
 
     fun testConnection() {
         val state = _uiState.value
+        val type = instance.value?.type ?: return
         if (state.testing) return
 
         viewModelScope.launch {
@@ -109,7 +110,7 @@ class EditInstanceViewModel(
 
             _uiState.update { it.copy(testing = true, endpointError = false) }
 
-            val success = testNewInstanceConnectionUseCase(state.apiEndpoint, state.apiKey)
+            val success = testNewInstanceConnectionUseCase(state.apiEndpoint, state.apiKey, type)
 
             _uiState.update {
                 it.copy(

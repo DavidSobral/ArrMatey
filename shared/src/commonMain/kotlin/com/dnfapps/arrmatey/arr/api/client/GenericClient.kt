@@ -11,9 +11,9 @@ class GenericClient(
 
     private val httpClient: HttpClient = httpClientFactory.createGeneric()
 
-    suspend fun test(endpoint: String, apiKey: String): Boolean {
+    suspend fun test(endpoint: String, apiKey: String, apiBase: String): Boolean {
         try {
-            val response = httpClient.safeGet<Any>("$endpoint/api") {
+            val response = httpClient.safeGet<Any>("${endpoint.trimEnd('/')}/$apiBase/system/status") {
                 header("X-Api-Key", apiKey)
             }
             return response is NetworkResult.Success

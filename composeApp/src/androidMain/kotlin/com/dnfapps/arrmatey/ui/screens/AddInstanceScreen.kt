@@ -137,7 +137,7 @@ fun AddInstanceScreen(
                 onInstanceLabelChanged = { viewModel.setInstanceLabel(it) },
                 onIsSlowInstanceChanged = { viewModel.setIsSlowInstance(it) },
                 onCustomTimeoutChanged = { viewModel.setCustomTimeout(it) },
-                onTestConnection = { viewModel.testConnection() },
+                onTestConnection = { viewModel.testConnection(selectedInstanceType) },
                 onHeadersChanged = { viewModel.updateHeaders(it) }
             )
         }

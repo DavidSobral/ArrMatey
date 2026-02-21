@@ -86,7 +86,7 @@ class AddInstanceViewModel(
     }
 
 
-    fun testConnection() {
+    fun testConnection(type: InstanceType) {
         val state = _uiState.value
         if (state.testing) return
 
@@ -98,7 +98,7 @@ class AddInstanceViewModel(
 
             _uiState.update { it.copy(testing = true, endpointError = false) }
 
-            val success = testNewInstanceConnectionUseCase(state.apiEndpoint, state.apiKey)
+            val success = testNewInstanceConnectionUseCase(state.apiEndpoint, state.apiKey, type)
 
             _uiState.update {
                 it.copy(
