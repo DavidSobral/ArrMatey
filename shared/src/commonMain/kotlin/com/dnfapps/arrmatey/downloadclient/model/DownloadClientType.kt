@@ -14,5 +14,15 @@ enum class DownloadClientType(
         displayName = "SABnzbd",
         defaultPort = 8080,
         iconKey = "sabnzbd"
+    ),
+    Deluge(
+        displayName = "Deluge",
+        defaultPort = 8112,
+        iconKey = "deluge"
+    ),
+    Transmission(
+        displayName = "Transmission",
+        defaultPort = 9091,
+        iconKey = "transmission"
     )
 }

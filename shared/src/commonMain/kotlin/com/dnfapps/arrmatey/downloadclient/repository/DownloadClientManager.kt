@@ -1,9 +1,11 @@
 package com.dnfapps.arrmatey.downloadclient.repository
 
 import com.dnfapps.arrmatey.arr.api.client.HttpClientFactory
+import com.dnfapps.arrmatey.downloadclient.api.DelugeClient
 import com.dnfapps.arrmatey.downloadclient.api.DownloadClientApi
 import com.dnfapps.arrmatey.downloadclient.api.QBittorrentClient
 import com.dnfapps.arrmatey.downloadclient.api.SABnzbdClient
+import com.dnfapps.arrmatey.downloadclient.api.TransmissionClient
 import com.dnfapps.arrmatey.downloadclient.model.DownloadClient
 import com.dnfapps.arrmatey.downloadclient.model.DownloadClientType
 import kotlinx.coroutines.CoroutineScope
@@ -96,6 +98,8 @@ class DownloadClientManager(
         return when (downloadClient.type) {
             DownloadClientType.QBittorrent -> QBittorrentClient(downloadClient, httpClient)
             DownloadClientType.SABnzbd -> SABnzbdClient(downloadClient, httpClient)
+            DownloadClientType.Deluge -> DelugeClient(downloadClient, httpClient)
+            DownloadClientType.Transmission -> TransmissionClient(downloadClient, httpClient)
             else -> SABnzbdClient(downloadClient, httpClient)
         }
     }
