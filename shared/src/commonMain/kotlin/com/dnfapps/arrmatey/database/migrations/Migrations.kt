@@ -12,5 +12,31 @@ private val MIGRATION_1_2 = object: Migration(1, 2) {
     }
 }
 
+private val MIGRATION_2_3 = object: Migration(2, 3) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `download_clients` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `type` TEXT NOT NULL,
+                `label` TEXT NOT NULL,
+                `url` TEXT NOT NULL,
+                `username` TEXT NOT NULL DEFAULT '',
+                `password` TEXT NOT NULL DEFAULT '',
+                `apiKey` TEXT NOT NULL DEFAULT '',
+                `enabled` INTEGER NOT NULL,
+                `selected` INTEGER NOT NULL
+            )
+            """.trimIndent()
+        )
 
-val migrations = listOf(MIGRATION_1_2)
+        connection.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS `index_download_clients_url` ON `download_clients` (`url`)"
+        )
+        connection.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS `index_download_clients_label` ON `download_clients` (`label`)"
+        )
+    }
+}
+
+val migrations = listOf(MIGRATION_1_2, MIGRATION_2_3)
