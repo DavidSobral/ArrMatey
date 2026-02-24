@@ -7,6 +7,8 @@ import com.dnfapps.arrmatey.navigation.NavigationManager
 import com.dnfapps.arrmatey.navigation.SeriesTabNavigation
 import com.dnfapps.arrmatey.navigation.SettingsNavigation
 import com.dnfapps.arrmatey.ui.helpers.ArrImageLoader
+import com.dnfapps.arrmatey.utils.AndroidCrashManager
+import com.dnfapps.arrmatey.utils.CrashManager
 import org.koin.dsl.module
 
 val androidModule = module {
@@ -21,5 +23,9 @@ val androidModule = module {
     single<ImageLoader> {
         ArrImageLoader(get(), get())
             .imageLoader
+    }
+
+    single<CrashManager> {
+        AndroidCrashManager(get(), get())
     }
 }

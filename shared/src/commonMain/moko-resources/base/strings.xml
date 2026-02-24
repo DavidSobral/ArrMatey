@@ -340,4 +340,9 @@
     <string name="current_network">Currently connected to: %s</string>
     <string name="test_local_connection">Test Local Connection</string>
 
+    <!-- Crash Reporting -->
+    <string name="crash_report_subject">ArrMatey Crash Report</string>
+    <string name="share_crash_log">Share Crash Log</string>
+    <string name="share_crash_log_message">It looks like the app crashed the last time you were using it. Would you like to share the crash log? You will be able to copy the log to paste into GitHub or you can share to GitHub directly to open an issue.</string>
+
 </resources>

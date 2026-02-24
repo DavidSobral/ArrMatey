@@ -5,6 +5,8 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import com.dnfapps.arrmatey.di.appModules
+import com.dnfapps.arrmatey.utils.AndroidCrashManager
+import com.dnfapps.arrmatey.utils.CrashManager
 import com.dnfapps.arrmatey.utils.initializeNetworkUtils
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
@@ -13,6 +15,7 @@ import org.koin.core.context.startKoin
 class ArrMateyApplication : Application(), SingletonImageLoader.Factory {
 
     private val imageLoader: ImageLoader by inject()
+    private val crashManager: CrashManager by inject()
 
     override fun onCreate() {
         super.onCreate()
@@ -23,6 +26,8 @@ class ArrMateyApplication : Application(), SingletonImageLoader.Factory {
             androidContext(this@ArrMateyApplication)
             modules(appModules() + listOf(androidModule))
         }
+
+        crashManager.initialize()
     }
 
     override fun newImageLoader(

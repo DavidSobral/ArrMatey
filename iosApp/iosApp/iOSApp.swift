@@ -6,6 +6,7 @@ struct iOSApp: App {
     init() {
         KoinHelperKt.doInitKoin()
         NetworkUtilsKt.initializeNetworkUtils()
+        IOSCrashManager().initialize()
     }
     
     @StateObject private var navigationManager = NavigationManager()
