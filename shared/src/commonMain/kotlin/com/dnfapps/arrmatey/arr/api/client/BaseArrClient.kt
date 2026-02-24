@@ -31,7 +31,7 @@ abstract class BaseArrClient(
         get() = "${instance.getEffectiveBaseUrl()}/${instance.type.apiBase}"
 
     override suspend fun testConnection(): NetworkResult<Unit> =
-        get("${instance.url}/api")
+        get(instance.type.testEndpoint)
 
     override suspend fun getQualityProfiles(): NetworkResult<List<QualityProfile>> =
         get("qualityprofile")
