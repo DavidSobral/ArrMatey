@@ -19,16 +19,10 @@ class NavigationManager(
     private val _selectedTab = MutableStateFlow(TabItem.SHOWS)
     val selectedTab: StateFlow<TabItem> = _selectedTab.asStateFlow()
 
-    private val _selectedDrawerTab = MutableStateFlow<TabItem?>(null)
-    val selectedDrawerTab: StateFlow<TabItem?> = _selectedDrawerTab.asStateFlow()
+    private val _overlayTab = MutableStateFlow<TabItem?>(null)
+    val overlayTab: StateFlow<TabItem?> = _overlayTab.asStateFlow()
 
     fun settings() = settingsNavigation
-
-    fun arr(type: InstanceType) = when (type) {
-        InstanceType.Sonarr -> seriesNavigation
-        InstanceType.Radarr -> movieNavigation
-        InstanceType.Lidarr -> musicNavigation
-    }
 
     fun series() = seriesNavigation
 
@@ -36,16 +30,32 @@ class NavigationManager(
 
     fun music() = musicNavigation
 
-    fun setSelectedTab(tab: TabItem) {
-        _selectedTab.value = tab
+    fun arr(type: InstanceType) = when (type) {
+        InstanceType.Sonarr -> seriesNavigation
+        InstanceType.Radarr -> movieNavigation
+        InstanceType.Lidarr -> musicNavigation
     }
 
-    fun setSelectedDrawerTab(tab: TabItem?) {
-        _selectedDrawerTab.value = tab
+    fun setSelectedTab(tab: TabItem) {
+        _selectedTab.value = tab
+        _overlayTab.value = null
+    }
+
+    fun openOverlay(tab: TabItem?) {
+        _overlayTab.value = tab
+        _drawerExpandedState.value = false
+    }
+
+    fun closeOverlay() {
+        _overlayTab.value = null
     }
 
     fun openDrawer() {
         _drawerExpandedState.value = true
+    }
+
+    fun closeDrawer() {
+        _drawerExpandedState.value = false
     }
 
     fun setDrawerOpen(isOpen: Boolean) {
@@ -53,12 +63,12 @@ class NavigationManager(
     }
 
     fun openNewInstanceScreen(type: InstanceType) {
-        _selectedDrawerTab.value = TabItem.SETTINGS
+        openOverlay(TabItem.SETTINGS)
         settings().navigateTo(SettingsScreen.AddInstance(type))
     }
 
     fun openEditInstanceScreen(id: Long) {
-        _selectedDrawerTab.value = TabItem.SETTINGS
+        openOverlay(TabItem.SETTINGS)
         settings().navigateTo(SettingsScreen.EditInstance(id))
     }
 

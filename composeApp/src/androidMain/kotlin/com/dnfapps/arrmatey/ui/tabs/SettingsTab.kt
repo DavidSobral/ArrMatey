@@ -27,8 +27,8 @@ fun SettingsTabNavHost(
     val instances by instanceRepository.allInstancesFlow.collectAsStateWithLifecycle()
 
     BackHandler(enabled = navigation.backStack.size <= 1 && instances.isNotEmpty()) {
-        navigationManager.setDrawerOpen(false)
-        navigationManager.setSelectedDrawerTab(null)
+        navigationManager.closeOverlay()
+        navigationManager.closeDrawer()
     }
 
     NavDisplay(
