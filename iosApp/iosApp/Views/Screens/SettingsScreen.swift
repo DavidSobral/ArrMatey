@@ -16,6 +16,9 @@ struct SettingsScreen: View {
     @ObservedObject private var viewModel = MoreScreenViewModelS()
     
     @State private var showLibrariesSheet: Bool = false
+    @State private var showShareLogAlert: Bool = false
+    
+    private let crashManager = IOSCrashManager()
     
     private var instances: [Instance] {
         viewModel.instances
@@ -87,6 +90,13 @@ struct SettingsScreen: View {
             }
             
             AboutCard(
+                onBugReportClick: {
+                    if crashManager.getLastCrashLog() != nil {
+                        showShareLogAlert = true
+                    } else if let url = URL(string: MR.strings().bug_report_link.localized()) {
+                        openURL(url)
+                    }
+                },
                 onGitHubClick: { if let url = URL(string: MR.strings().app_link.localized()) {
                     openURL(url)
                 } },
@@ -98,6 +108,13 @@ struct SettingsScreen: View {
             
             Section {
                 if isDebug() {
+                    Button("Simulate crash") {
+                        NSException(
+                            name: NSExceptionName("SimulatedCrash"),
+                            reason: "Manual simulation for log testing",
+                            userInfo: nil
+                        ).raise()
+                    }
                     Button("Dev settings") {
                         navigationManager.go(to: .dev)
                     }
@@ -108,5 +125,27 @@ struct SettingsScreen: View {
         .sheet(isPresented: $showLibrariesSheet) {
             LibrariesSheet()
         }
+        .alert(MR.strings().share_crash_log.localized(), isPresented: $showShareLogAlert) {
+            Button(MR.strings().yes.localized()) {
+                if let log = crashManager.getLastCrashLog() {
+                    crashManager.shareCrashLog(log: log)
+                }
+                finalizeCrashCleanup()
+            }
+            
+            Button(MR.strings().no.localized(), role: .cancel) {
+                finalizeCrashCleanup()
+                if let url = URL(string: MR.strings().bug_report_link.localized()) {
+                    openURL(url)
+                }
+            }
+        } message: {
+            Text(MR.strings().share_crash_log_message.localized())
+        }
+    }
+    
+    private func finalizeCrashCleanup() {
+        crashManager.clearCrashLog()
+        showShareLogAlert = false
     }
 }

@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,7 +33,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -62,6 +66,7 @@ import com.dnfapps.arrmatey.navigation.SettingsScreen
 import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.ui.components.navigation.NavigationDrawerButton
 import com.dnfapps.arrmatey.ui.components.settings.AboutCard
+import com.dnfapps.arrmatey.utils.CrashManager
 import com.dnfapps.arrmatey.utils.MokoStrings
 import com.dnfapps.arrmatey.utils.mokoString
 import com.mikepenz.aboutlibraries.Libs
@@ -70,8 +75,10 @@ import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import com.mikepenz.aboutlibraries.util.withContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
+import kotlin.math.log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,7 +86,8 @@ fun SettingsScreen(
     viewModel: MoreScreenViewModel = koinInject(),
     navigationManager: NavigationManager = koinInject(),
     settingsNav: SettingsNavigation = navigationManager.settings(),
-    moko: MokoStrings = koinInject()
+    moko: MokoStrings = koinInject(),
+    crashManager: CrashManager = koinInject()
 ) {
     val context = LocalContext.current
     val allInstances by viewModel.instances.collectAsStateWithLifecycle()
@@ -87,6 +95,8 @@ fun SettingsScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     var showLibrariesSheet by remember { mutableStateOf(false) }
+
+    var confirmShareLastLog by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -99,8 +109,12 @@ fun SettingsScreen(
                 scrollBehavior = scrollBehavior
             )
         }
-    ) {
-        Box(modifier = Modifier.padding(it)) {
+    ) { paddingValues ->
+        PullToRefreshBox(
+            isRefreshing = instanceConnectionStatues.values.any { it is OperationStatus.InProgress },
+            onRefresh = { viewModel.refreshInstanceConnections() },
+            modifier = Modifier.padding(paddingValues)
+        ) {
             Column(
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
@@ -196,6 +210,12 @@ fun SettingsScreen(
                 }
 
                 AboutCard(
+                    onBugReportClick = {
+                        confirmShareLastLog = crashManager.getLastCrashLog()
+                        if (confirmShareLastLog == null) {
+                            context.openLink(moko.getString(MR.strings.bug_report_link))
+                        }
+                    },
                     onGitHubClick = {
                         context.openLink(moko.getString(MR.strings.app_link))
                     },
@@ -207,6 +227,12 @@ fun SettingsScreen(
                 )
 
                 if (isDebug()) {
+                    Button(onClick = {
+                       throw IllegalStateException("THIS IS A SIMULATED CRASH")
+                    }) {
+                        Text("Simulate crash")
+                    }
+
                     Card(
                         shape = MaterialTheme.shapes.extraLarge,
                         modifier = Modifier.fillMaxWidth(),
@@ -258,6 +284,37 @@ fun SettingsScreen(
                     } }
                 )
             }
+        }
+
+        confirmShareLastLog?.let { log ->
+            AlertDialog(
+                onDismissRequest = {
+                    confirmShareLastLog = null
+                    crashManager.clearCrashLog()
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            crashManager.shareCrashLog(log)
+                            crashManager.clearCrashLog()
+                            confirmShareLastLog = null
+                        }
+                    ) { Text(mokoString(MR.strings.yes)) }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            confirmShareLastLog = null
+                            crashManager.clearCrashLog()
+                            context.openLink(moko.getString(MR.strings.bug_report_link))
+                        }
+                    ) { Text(mokoString(MR.strings.no)) }
+                },
+                title = { Text(mokoString(MR.strings.share_crash_log)) },
+                text = {
+                    Text(mokoString(MR.strings.share_crash_log_message))
+                }
+            )
         }
     }
 }

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -22,6 +23,9 @@ class MoreScreenViewModel(
     val testingStatus: StateFlow<Map<Long, OperationStatus>> = _testingStatus.asStateFlow()
 
     val instances = instanceRepository.observeAllInstances()
+        .map { instances ->
+            instances.sortedBy { it.type }
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -49,6 +53,16 @@ class MoreScreenViewModel(
             testInstanceConnectionUseCase(id).collect { status ->
                 _testingStatus.value = _testingStatus.value.toMutableMap().apply {
                     put(id, status)
+                }
+            }
+        }
+    }
+
+    fun refreshInstanceConnections() {
+        viewModelScope.launch {
+            instances.collect { currentInstances ->
+                currentInstances.forEach { instance ->
+                    testInstance(instance.id)
                 }
             }
         }

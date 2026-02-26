@@ -5,6 +5,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.utils.AspectRatio
+import com.dnfapps.arrmatey.utils.getNetworkUtils
 import dev.icerock.moko.resources.StringResource
 
 @Entity(
@@ -24,8 +25,44 @@ data class Instance(
     val slowInstance: Boolean = false,
     val customTimeout: Long? = null,
     val selected: Boolean = false,
-    val headers: List<InstanceHeader> = emptyList()
-)
+    val headers: List<InstanceHeader> = emptyList(),
+
+    val localNetworkEnabled: Boolean = false,
+    val localNetworkSsid: String? = null,
+    val localNetworkEndpoint: String? = null
+) {
+
+    fun getEffectiveBaseUrl(): String {
+        if (!localNetworkEnabled ||
+            localNetworkSsid.isNullOrBlank() ||
+            localNetworkEndpoint.isNullOrBlank()
+            ) {
+            return url
+        }
+        return try {
+            val currentSsid = getNetworkUtils().getCurrentWifiSsid()
+            if (currentSsid != null && currentSsid.equals(localNetworkSsid, ignoreCase = true)) {
+                localNetworkEndpoint
+            } else {
+                url
+            }
+        } catch (e: Exception) {
+            url
+        }
+    }
+
+    fun isUsingLocalNetwork(): Boolean {
+        return try {
+            val currentSsid = getNetworkUtils().getCurrentWifiSsid()
+            localNetworkEnabled &&
+                    !localNetworkEndpoint.isNullOrBlank() &&
+                    currentSsid != null &&
+                    currentSsid.equals(localNetworkSsid, ignoreCase = true)
+        } catch (e: Exception) {
+            false
+        }
+    }
+}
 
 enum class InstanceType(
     val resource: StringResource,
@@ -35,6 +72,7 @@ enum class InstanceType(
     val defaultPort: Int,
     val supportsActivityQueue: Boolean,
     val apiBase: String,
+    val testEndpoint: String,
     val includeTopLevelAutomaticSearchOption: Boolean,
     val aspectRatio: AspectRatio
 ) {
@@ -46,6 +84,7 @@ enum class InstanceType(
         defaultPort = 8989,
         supportsActivityQueue = true,
         apiBase = "api/v3",
+        testEndpoint = "system/status",
         includeTopLevelAutomaticSearchOption = true,
         aspectRatio = AspectRatio.Poster
     ),
@@ -57,6 +96,7 @@ enum class InstanceType(
         defaultPort = 7878,
         supportsActivityQueue = true,
         apiBase = "api/v3",
+        testEndpoint = "system/status",
         includeTopLevelAutomaticSearchOption = false,
         aspectRatio = AspectRatio.Poster
     ),
@@ -68,7 +108,20 @@ enum class InstanceType(
         defaultPort = 8686,
         supportsActivityQueue = true,
         apiBase = "api/v1",
+        testEndpoint = "system/status",
         includeTopLevelAutomaticSearchOption = true,
         aspectRatio = AspectRatio.Cover
-    )
+    ),
+//    Seerr(
+//        resource = MR.strings.seerr_description,
+//        github = "https://github.com/seerr-team/seerr",
+//        website = "https://docs.seerr.dev/",
+//        iconKey = "seerr",
+//        defaultPort = 5055,
+//        supportsActivityQueue = false,
+//        apiBase = "api/v1",
+//        testEndpoint = "auth/me",
+//        includeTopLevelAutomaticSearchOption = false,
+//        aspectRatio = AspectRatio.Poster
+//    )
 }

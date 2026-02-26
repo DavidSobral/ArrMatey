@@ -52,8 +52,6 @@ import com.dnfapps.arrmatey.arr.state.ArrLibrary
 import com.dnfapps.arrmatey.arr.viewmodel.ActivityQueueViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.ArrMediaViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.InstancesViewModel
-import com.dnfapps.arrmatey.client.ErrorType
-import com.dnfapps.arrmatey.di.koinInjectParams
 import com.dnfapps.arrmatey.entensions.getDrawableId
 import com.dnfapps.arrmatey.instances.model.InstanceType
 import com.dnfapps.arrmatey.navigation.ArrScreen
@@ -66,6 +64,7 @@ import com.dnfapps.arrmatey.ui.components.InstancePicker
 import com.dnfapps.arrmatey.ui.components.MediaView
 import com.dnfapps.arrmatey.ui.components.navigation.NavigationDrawerButton
 import com.dnfapps.arrmatey.ui.menu.LibraryFilterMenu
+import com.dnfapps.arrmatey.utils.koinInjectParams
 import com.dnfapps.arrmatey.utils.mokoString
 import org.koin.compose.koinInject
 
@@ -90,9 +89,10 @@ fun ArrLibraryScreen(
     val errorMessage by arrMediaViewModel.errorMessage.collectAsStateWithLifecycle()
 
     LaunchedEffect(errorMessage) {
-        errorMessage?.let { message ->
+        errorMessage?.takeUnless { it.isEmpty() }?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
+        arrMediaViewModel.resetErrorMessage()
     }
 
     val textFieldState = rememberTextFieldState()
@@ -112,39 +112,38 @@ fun ArrLibraryScreen(
             }
         },
         topBar = {
-            instancesState.selectedInstance?.let {
-                ArrAppBarWithSearch(
-                    textFieldState = textFieldState,
-                    searchPlaceholder = mokoString(MR.strings.search_placeholder, instancesState.selectedInstance?.label ?: ""),
-                    trailingIcon = {
-                        Image(
-                            painter = painterResource(getDrawableId(type.iconKey)),
-                            contentDescription = mokoString(type.resource),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    },
-                    navigationIcon = { NavigationDrawerButton() },
-                    actions = {
-                        InstancePicker(
-                            type = type,
-                            currentInstance = instancesState.selectedInstance,
-                            typeInstances = instancesState.instances,
-                            onInstanceSelected = { instancesViewModel.setInstanceActive(it) }
-                        )
-                        LibraryFilterMenu(
-                            type = type,
-                            filterBy = preferences.filterBy,
-                            onFilterByChanged = { arrMediaViewModel.updateFilterBy(it) },
-                            sortBy = preferences.sortBy,
-                            onSortByChanged = { arrMediaViewModel.updateSortBy(it) },
-                            sortOrder = preferences.sortOrder,
-                            onSortOrderChanged = { arrMediaViewModel.updateSortOrder(it) },
-                            viewType = preferences.viewType,
-                            onViewTypeChanged = { arrMediaViewModel.updateViewType(it) }
-                        )
-                    }
-                )
-            }
+            ArrAppBarWithSearch(
+                textFieldState = textFieldState,
+                textFieldEnabled = instancesState.selectedInstance != null,
+                searchPlaceholder = mokoString(MR.strings.search_placeholder, instancesState.selectedInstance?.label ?: ""),
+                trailingIcon = {
+                    Image(
+                        painter = painterResource(getDrawableId(type.iconKey)),
+                        contentDescription = mokoString(type.resource),
+                        modifier = Modifier.size(24.dp)
+                    )
+                },
+                navigationIcon = { NavigationDrawerButton() },
+                actions = {
+                    InstancePicker(
+                        type = type,
+                        currentInstance = instancesState.selectedInstance,
+                        typeInstances = instancesState.instances,
+                        onInstanceSelected = { instancesViewModel.setInstanceActive(it) }
+                    )
+                    LibraryFilterMenu(
+                        type = type,
+                        filterBy = preferences.filterBy,
+                        onFilterByChanged = { arrMediaViewModel.updateFilterBy(it) },
+                        sortBy = preferences.sortBy,
+                        onSortByChanged = { arrMediaViewModel.updateSortBy(it) },
+                        sortOrder = preferences.sortOrder,
+                        onSortOrderChanged = { arrMediaViewModel.updateSortOrder(it) },
+                        viewType = preferences.viewType,
+                        onViewTypeChanged = { arrMediaViewModel.updateViewType(it) }
+                    )
+                }
+            )
         },
         contentWindowInsets = WindowInsets.statusBars
     ) { paddingValues ->
@@ -234,6 +233,7 @@ private fun EmptySearchResultsView(
         InstanceType.Sonarr -> mokoString(MR.strings.type_series)
         InstanceType.Radarr -> mokoString(MR.strings.type_movie)
         InstanceType.Lidarr -> mokoString(MR.strings.type_artist)
+        else -> mokoString(MR.strings.unknown)
     }
     Column(
         verticalArrangement = Arrangement.Center,
@@ -338,33 +338,5 @@ private fun EmptyLibraryView(
         Text(
             text = mokoString(MR.strings.empty_library_message)
         )
-    }
-}
-
-@Composable
-private fun InstanceErrorView(
-    onRefresh: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-    ) {
-        Icon(
-            imageVector = Icons.Default.CloudOff,
-            contentDescription = null,
-            modifier = Modifier.size(128.dp),
-            tint = MaterialTheme.colorScheme.error
-        )
-        Text(
-            text = mokoString(MR.strings.couldnt_connect),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Text(text = mokoString(MR.strings.couldnt_connect_message))
-        Button(onClick = onRefresh) {
-            Text(text = mokoString(MR.strings.retry))
-        }
     }
 }

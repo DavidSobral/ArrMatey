@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -49,6 +50,7 @@ import com.dnfapps.arrmatey.compose.TabItem
 import com.dnfapps.arrmatey.datastore.PreferencesStore
 import com.dnfapps.arrmatey.datastore.TabPreferences
 import com.dnfapps.arrmatey.entensions.BadgeContent
+import com.dnfapps.arrmatey.entensions.androidIcon
 import com.dnfapps.arrmatey.instances.model.InstanceType
 import com.dnfapps.arrmatey.navigation.NavigationManager
 import com.dnfapps.arrmatey.navigation.SettingsScreen
@@ -57,6 +59,7 @@ import com.dnfapps.arrmatey.ui.components.navigation.DoubleBackToExit
 import com.dnfapps.arrmatey.ui.tabs.ActivityTab
 import com.dnfapps.arrmatey.ui.tabs.ArrTab
 import com.dnfapps.arrmatey.ui.tabs.CalendarTab
+import com.dnfapps.arrmatey.ui.tabs.RequestsTab
 import com.dnfapps.arrmatey.ui.tabs.SettingsTabNavHost
 import com.dnfapps.arrmatey.utils.mokoString
 import kotlinx.coroutines.delay
@@ -71,17 +74,22 @@ fun HomeScreen(
 ) {
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
     val drawerExtendedState by navigationManager.drawerExpandedState.collectAsStateWithLifecycle()
-    val selectedDrawerTab by navigationManager.selectedDrawerTab.collectAsStateWithLifecycle()
+    val overlayTab by navigationManager.overlayTab.collectAsStateWithLifecycle()
     val selectedTab by navigationManager.selectedTab.collectAsStateWithLifecycle()
-    val pagerState = rememberPagerState { TabItem.bottomEntries.size }
 
     val tabPreferences by preferencesStore.tabPreferences.collectAsStateWithLifecycle(TabPreferences())
     val visibleTabs = tabPreferences.bottomTabItems
     val drawerTabs = tabPreferences.hiddenTabs
 
+    val pagerState = rememberPagerState { tabPreferences.bottomTabItems.size }
+
     LaunchedEffect(selectedTab) {
-        pagerState.scrollToPage(selectedTab.ordinal)
+        val index = visibleTabs.indexOf(selectedTab)
+        if (index >= 0) {
+            pagerState.scrollToPage(index)
+        }
     }
 
     LaunchedEffect(drawerState.currentValue) {
@@ -95,7 +103,6 @@ fun HomeScreen(
         if (drawerExtendedState && drawerState.isClosed) {
             drawerState.open()
         } else if (!drawerExtendedState && drawerState.isOpen) {
-            navigationManager.setSelectedDrawerTab(null)
             drawerState.close()
         }
     }
@@ -105,105 +112,129 @@ fun HomeScreen(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet(
-                drawerState = drawerState
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    NavigationDrawerItem(
-                        label = { Text(mokoString(MR.strings.home)) },
-                        selected = selectedDrawerTab == null,
-                        icon = { Icon(Icons.Default.Home, null) },
-                        onClick = {
-                            scope.launch {
-                                navigationManager.setDrawerOpen(false)
-                                navigationManager.setSelectedDrawerTab(null)
-                                drawerState.close()
-                            }
+            ModalDrawerSheet(drawerState = drawerState) {
+                DrawerContent(
+                    drawerTabs = drawerTabs,
+                    overlayTab = overlayTab,
+                    onHomeClick = {
+                        scope.launch {
+                            navigationManager.closeOverlay()
+                            navigationManager.closeDrawer()
+                            drawerState.close()
                         }
-                    )
-                    HorizontalDivider()
-                    drawerTabs.forEach { item ->
-                        NavigationDrawerItem(
-                            label = { Text(mokoString(item.resource)) },
-                            selected = selectedDrawerTab == item,
-                            icon = { Icon(item.androidIcon, null) },
-                            onClick =  {
-                                scope.launch {
-                                    navigationManager.setDrawerOpen(false)
-                                    navigationManager.setSelectedDrawerTab(item)
-                                    drawerState.close()
-                                }
-                            }
-                        )
+                    },
+                    onDrawerTabClick = { tab ->
+                        scope.launch {
+                            navigationManager.openOverlay(tab)
+                            drawerState.close()
+                        }
+                    },
+                    onSettingsClick = {
+                        scope.launch {
+                            navigationManager.openOverlay(TabItem.SETTINGS)
+                            drawerState.close()
+                        }
                     }
-                    Spacer(Modifier.weight(1f))
-                    HorizontalDivider()
-                    NavigationDrawerItem(
-                        selected = selectedDrawerTab == TabItem.SETTINGS,
-                        icon = { Icon(Icons.Default.Settings, null) },
-                        label = { Text(mokoString(MR.strings.settings)) },
-                        onClick = {
-                            scope.launch {
-                                navigationManager.setDrawerOpen(true)
-                                navigationManager.setSelectedDrawerTab(TabItem.SETTINGS)
-                                drawerState.close()
-                            }
-                        }
-                    )
-                }
+                )
             }
         }
     ) {
         AnimatedContent(
-            targetState = selectedDrawerTab == null,
+            targetState = overlayTab,
             transitionSpec = {
                 (fadeIn() + scaleIn(initialScale = 0.98f))
                     .togetherWith(fadeOut())
-                    .using(SizeTransform(clip = false))
             },
-            label = "TabTransition"
-        ) { showHome ->
-            if (!showHome && selectedDrawerTab != null) {
-                TabItemContent(selectedDrawerTab!!)
+            label = "OverlayTransition"
+        ) { currentOverlay ->
+            if (currentOverlay != null) {
+                TabItemContent(currentOverlay)
             } else {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    HorizontalPager(
-                        state = pagerState,
-                        modifier = Modifier.weight(1f),
-                        userScrollEnabled = false,
-                        beyondViewportPageCount = TabItem.bottomEntries.size
-                    ) { page ->
-                        TabItemContent(TabItem.bottomEntries[page])
-                    }
+                MainNavigationContent(
+                    visibleTabs = visibleTabs,
+                    selectedTab = selectedTab,
+                    pagerState = pagerState,
+                    onTabSelected = { navigationManager.setSelectedTab(it) }
+                )
+            }
+        }
+    }
+}
 
-                    if (visibleTabs.size > 1) {
-                        NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
-                            visibleTabs.forEach { entry ->
-                                NavigationBarItem(
-                                    selected = entry == selectedTab,
-                                    onClick = {
-                                        navigationManager.setSelectedTab(entry)
-                                    },
-                                    icon = {
-                                        BadgedBox(
-                                            badge = { BadgeContent(tabItem = entry) }
-                                        ) {
-                                            Icon(
-                                                imageVector = entry.androidIcon,
-                                                contentDescription = mokoString(entry.resource)
-                                            )
-                                        }
-                                    },
-                                    label = { Text(text = mokoString(entry.resource)) }
+@Composable
+private fun DrawerContent(
+    drawerTabs: List<TabItem>,
+    overlayTab: TabItem?,
+    onHomeClick: () -> Unit,
+    onDrawerTabClick: (TabItem) -> Unit,
+    onSettingsClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        NavigationDrawerItem(
+            label = { Text(mokoString(MR.strings.home)) },
+            selected = overlayTab == null,
+            icon = { Icon(Icons.Default.Home, contentDescription = null) },
+            onClick = onHomeClick
+        )
+        HorizontalDivider()
+
+        drawerTabs.forEach { item ->
+            NavigationDrawerItem(
+                label = { Text(mokoString(item.resource)) },
+                selected = overlayTab == item,
+                icon = { Icon(item.androidIcon, contentDescription = null) },
+                onClick = { onDrawerTabClick(item) }
+            )
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        HorizontalDivider()
+        NavigationDrawerItem(
+            selected = overlayTab == TabItem.SETTINGS,
+            icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+            label = { Text(mokoString(MR.strings.settings)) },
+            onClick = onSettingsClick
+        )
+    }
+}
+
+@Composable
+private fun MainNavigationContent(
+    visibleTabs: List<TabItem>,
+    selectedTab: TabItem,
+    pagerState: PagerState,
+    onTabSelected: (TabItem) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.weight(1f),
+            userScrollEnabled = false,
+            beyondViewportPageCount = visibleTabs.size
+        ) { page ->
+            TabItemContent(visibleTabs[page])
+        }
+
+        if (visibleTabs.size > 1) {
+            NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
+                visibleTabs.forEach { entry ->
+                    NavigationBarItem(
+                        selected = entry == selectedTab,
+                        onClick = { onTabSelected(entry) },
+                        icon = {
+                            BadgedBox(badge = { BadgeContent(tabItem = entry) }) {
+                                Icon(
+                                    imageVector = entry.androidIcon,
+                                    contentDescription = mokoString(entry.resource)
                                 )
                             }
-                        }
-                    }
+                        },
+                        label = { Text(text = mokoString(entry.resource)) }
+                    )
                 }
             }
         }
@@ -211,13 +242,15 @@ fun HomeScreen(
 }
 
 @Composable
-fun TabItemContent(tab: TabItem) {
+private fun TabItemContent(tab: TabItem) {
     when (tab) {
         TabItem.SHOWS -> ArrTab(InstanceType.Sonarr)
         TabItem.MOVIES -> ArrTab(InstanceType.Radarr)
         TabItem.MUSIC -> ArrTab(InstanceType.Lidarr)
         TabItem.ACTIVITY -> ActivityTab()
         TabItem.CALENDAR -> CalendarTab()
+        TabItem.REQUESTS -> RequestsTab()
+
         TabItem.SETTINGS -> SettingsTabNavHost()
     }
 }

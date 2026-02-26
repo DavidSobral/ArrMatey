@@ -16,6 +16,31 @@ private val MIGRATION_2_3 = object: Migration(2, 3) {
     override fun migrate(connection: SQLiteConnection) {
         connection.execSQL(
             """
+            ALTER TABLE instances 
+            ADD COLUMN localNetworkEnabled INTEGER NOT NULL DEFAULT 0
+            """.trimIndent()
+        )
+
+        connection.execSQL(
+            """
+            ALTER TABLE instances 
+            ADD COLUMN localNetworkEndpoint TEXT DEFAULT NULL
+            """.trimIndent()
+        )
+
+        connection.execSQL(
+            """
+            ALTER TABLE instances 
+            ADD COLUMN localNetworkSsid TEXT DEFAULT NULL
+            """.trimIndent()
+        )
+    }
+}
+
+private val MIGRATION_3_4 = object: Migration(3, 4) {
+    override fun migrate(connection: SQLiteConnection) {
+        connection.execSQL(
+            """
             CREATE TABLE IF NOT EXISTS `download_clients` (
                 `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 `type` TEXT NOT NULL,
@@ -29,7 +54,6 @@ private val MIGRATION_2_3 = object: Migration(2, 3) {
             )
             """.trimIndent()
         )
-
         connection.execSQL(
             "CREATE UNIQUE INDEX IF NOT EXISTS `index_download_clients_url` ON `download_clients` (`url`)"
         )
@@ -39,4 +63,4 @@ private val MIGRATION_2_3 = object: Migration(2, 3) {
     }
 }
 
-val migrations = listOf(MIGRATION_1_2, MIGRATION_2_3)
+val migrations = listOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
