@@ -3,13 +3,13 @@ package com.dnfapps.arrmatey.arr.usecase
 import com.dnfapps.arrmatey.arr.api.model.CommandPayload
 import com.dnfapps.arrmatey.client.NetworkResult
 import com.dnfapps.arrmatey.instances.model.InstanceType
-import com.dnfapps.arrmatey.instances.repository.InstanceScopedRepository
+import com.dnfapps.arrmatey.instances.repository.ArrInstanceRepository
 
 class PerformAutomaticSearchUseCase {
     suspend operator fun invoke(
         mediaId: Long,
         type: InstanceType,
-        repository: InstanceScopedRepository,
+        repository: ArrInstanceRepository,
         episodeId: Long? = null,
         seasonNumber: Int? = null,
         albumId: Long? = null
@@ -29,7 +29,7 @@ class PerformAutomaticSearchUseCase {
                     else -> CommandPayload.Artist(mediaId)
                 }
             }
-            InstanceType.Prowlarr -> return NetworkResult.Error(message = "Not supported for Prowlarr")
+            else -> throw UnsupportedOperationException("Cannot perform automatic search on instance of type $type")
         }
         return repository.executeCommand(payload)
     }

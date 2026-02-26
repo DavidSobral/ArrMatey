@@ -1,6 +1,5 @@
 package com.dnfapps.arrmatey.arr.service
 
-import com.dnfapps.arrmatey.arr.api.client.ArrClient
 import com.dnfapps.arrmatey.arr.api.model.ArrAlbum
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
 import com.dnfapps.arrmatey.arr.api.model.Episode
@@ -9,7 +8,7 @@ import com.dnfapps.arrmatey.client.onError
 import com.dnfapps.arrmatey.client.onSuccess
 import com.dnfapps.arrmatey.instances.model.InstanceType
 import com.dnfapps.arrmatey.instances.repository.InstanceManager
-import com.dnfapps.arrmatey.instances.repository.InstanceScopedRepository
+import com.dnfapps.arrmatey.instances.repository.ArrInstanceRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -90,7 +89,7 @@ class CalendarService(
     }
 
     private suspend fun fetch(start: LocalDate, end: LocalDate) {
-        val repositories = instanceManager.getAllRepositories()
+        val repositories = instanceManager.getAllArrRepositories()
 
         coroutineScope {
             repositories.forEach { repository ->
@@ -99,7 +98,7 @@ class CalendarService(
                         InstanceType.Radarr -> fetchMovies(repository, start, end)
                         InstanceType.Sonarr -> fetchEpisodes(repository, start, end)
                         InstanceType.Lidarr -> fetchAlbums(repository, start, end)
-                        InstanceType.Prowlarr -> {}
+                        else -> {}
                     }
                 }
             }
@@ -109,12 +108,11 @@ class CalendarService(
     }
 
     private suspend fun fetchMovies(
-        repository: InstanceScopedRepository,
+        repository: ArrInstanceRepository,
         start: LocalDate,
         end: LocalDate
     ) {
-        val client = repository.client as? ArrClient ?: return
-        client.getMovieCalendar(start, end)
+        repository.client.getMovieCalendar(start, end)
             .onSuccess { movies ->
                 val currentMovies = _movies.value.toMutableMap()
 
@@ -149,7 +147,8 @@ class CalendarService(
     ) {
         val currentList = map[date]?.toMutableList() ?: mutableListOf()
 
-        val existingIndex = currentList.indexOfFirst { it.id == movie.id }
+        // Use tmdbId for deduplication (same across Radarr instances)
+        val existingIndex = currentList.indexOfFirst { it.tmdbId == movie.tmdbId }
         if (existingIndex >= 0) {
             currentList[existingIndex] = movie
         } else {
@@ -160,12 +159,11 @@ class CalendarService(
     }
 
     private suspend fun fetchEpisodes(
-        repository: InstanceScopedRepository,
+        repository: ArrInstanceRepository,
         start: LocalDate,
         end: LocalDate
     ) {
-        val client = repository.client as? ArrClient ?: return
-        client.getEpisodeCalendar(start, end)
+        repository.client.getEpisodeCalendar(start, end)
             .onSuccess { episodes ->
                 val currentEpisodes = _episodes.value.toMutableMap()
 
@@ -191,7 +189,18 @@ class CalendarService(
     ) {
         val currentList = map[date]?.toMutableList() ?: mutableListOf()
 
-        val existingIndex = currentList.indexOfFirst { it.id == episode.id }
+        // Use tvdbId for deduplication (same across Sonarr instances)
+        // Fallback to series tvdbId + season + episode if tvdbId is null
+        val existingIndex = currentList.indexOfFirst { existing ->
+            when {
+                existing.tvdbId != null && episode.tvdbId != null -> existing.tvdbId == episode.tvdbId
+                existing.series?.tvdbId != null && episode.series?.tvdbId != null ->
+                    existing.series?.tvdbId == episode.series?.tvdbId &&
+                    existing.seasonNumber == episode.seasonNumber &&
+                    existing.episodeNumber == episode.episodeNumber
+                else -> existing.id == episode.id && existing.instanceId == episode.instanceId
+            }
+        }
         if (existingIndex >= 0) {
             currentList[existingIndex] = episode
         } else {
@@ -226,12 +235,11 @@ class CalendarService(
     }
 
     private suspend fun fetchAlbums(
-        repository: InstanceScopedRepository,
+        repository: ArrInstanceRepository,
         start: LocalDate,
         end: LocalDate
     ) {
-        val client = repository.client as? ArrClient ?: return
-        client.getAlbumCalendar(start, end)
+        repository.client.getAlbumCalendar(start, end)
             .onSuccess { albums ->
                 val currentAlbums = _albums.value.toMutableMap()
 
@@ -256,7 +264,8 @@ class CalendarService(
     ) {
         val currentList = map[date]?.toMutableList() ?: mutableListOf()
 
-        val existingIndex = currentList.indexOfFirst { it.id == album.id }
+        // Use foreignAlbumId (MusicBrainz ID) for deduplication (same across Lidarr instances)
+        val existingIndex = currentList.indexOfFirst { it.foreignAlbumId == album.foreignAlbumId }
         if (existingIndex >= 0) {
             currentList[existingIndex] = album
         } else {

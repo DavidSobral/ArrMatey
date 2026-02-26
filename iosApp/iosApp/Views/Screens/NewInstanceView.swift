@@ -9,15 +9,19 @@ import SwiftUI
 import Shared
 
 struct NewInstanceView: View {
-    
     @Environment(\.dismiss) var dismiss
     
     @ObservedObject private var viewModel = AddInstanceViewModelS()
     
-    @State private var instanceType: InstanceType// = .sonarr
+    @State private var instanceType: InstanceType
+    private let onSaveSuccess: () -> Void
     
-    init(initialType: InstanceType) {
+    init(
+        initialType: InstanceType = .sonarr,
+        onSaveSuccess: @escaping () -> Void
+    ) {
         self.instanceType = initialType
+        self.onSaveSuccess = onSaveSuccess
     }
     
     private var uiState: AddInstanceUiState {
@@ -37,6 +41,7 @@ struct NewInstanceView: View {
             .onChange(of: viewModel.createWasSuccessful) { _, newValue in
                 if newValue {
                     dismiss()
+                    onSaveSuccess()
                 }
             }
     }
@@ -51,7 +56,11 @@ struct NewInstanceView: View {
             onIsSlowInstanceChanged: { viewModel.setIsSlowInstance($0) },
             onCustomTimeoutChanged: { viewModel.setCustomTimeout($0) },
             onHeadersChanged: { viewModel.updateHeaders($0) },
-            onTestConnection: { viewModel.testConnection() },
+            onTestConnection: { viewModel.testConnection(instanceType) },
+            onLocalNetworkEnabledChanged: { viewModel.setLocalNetworkEnabled($0) },
+            onLocalNetworkUrlChanged: { viewModel.setLocalNetworkUrl($0) },
+            onLocalNetworkSsidChanged: { viewModel.setLocalNetworkSsid($0) },
+            onTestLocalConnection: { viewModel.testLocalConnection(instanceType) },
             onDismissInfoCard: { viewModel.dismissInfoCard($0) },
             showInfoCard: showInfoCard,
             showInstancePicker: true,

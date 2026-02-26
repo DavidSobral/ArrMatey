@@ -20,19 +20,10 @@ struct TabItemContent: View {
             case .music: MusicTab()
             case .activity: ActivityTab()
             case .calendar: CalendarTab()
-            case .settings: SettingsTab().toolbar { navigationIcon }
+            case .requests: EmptyView()
+            case .settings: SettingsScreen()
             }
         }
         .navigationTitle(LocalizedStringKey(tabItem.resource.localized()))
-    }
-    
-    private var navigationIcon: some ToolbarContent {
-        ToolbarItem(placement: .navigationBarLeading) {
-            Button {
-                navigationManager.setSelectedDrawerTab(nil)
-            } label: {
-                Image(systemName: "arrow.backward")
-            }
-        }
     }
 }

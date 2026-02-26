@@ -56,16 +56,19 @@ import com.dnfapps.arrmatey.arr.api.model.ArrMedia
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
 import com.dnfapps.arrmatey.arr.api.model.ArrSeries
 import com.dnfapps.arrmatey.arr.api.model.Arrtist
+import com.dnfapps.arrmatey.arr.api.model.ArtistMonitorType
+import com.dnfapps.arrmatey.arr.api.model.MonitorNewItems
 import com.dnfapps.arrmatey.arr.api.model.QualityProfile
 import com.dnfapps.arrmatey.arr.api.model.RootFolder
 import com.dnfapps.arrmatey.arr.api.model.Tag
 import com.dnfapps.arrmatey.arr.state.MediaDetailsUiState
 import com.dnfapps.arrmatey.arr.viewmodel.ArrMediaDetailsViewModel
 import com.dnfapps.arrmatey.client.OperationStatus
-import com.dnfapps.arrmatey.di.koinInjectParams
+import com.dnfapps.arrmatey.compose.utils.bytesAsFileSizeString
 import com.dnfapps.arrmatey.entensions.copy
 import com.dnfapps.arrmatey.entensions.headerBarColors
 import com.dnfapps.arrmatey.instances.model.InstanceType
+import com.dnfapps.arrmatey.model.toInfoList
 import com.dnfapps.arrmatey.navigation.ArrScreen
 import com.dnfapps.arrmatey.navigation.Navigation
 import com.dnfapps.arrmatey.navigation.NavigationManager
@@ -82,8 +85,11 @@ import com.dnfapps.arrmatey.ui.components.UpcomingDateView
 import com.dnfapps.arrmatey.ui.sheets.EditArtistSheet
 import com.dnfapps.arrmatey.ui.sheets.EditMovieSheet
 import com.dnfapps.arrmatey.ui.sheets.EditSeriesSheet
+import com.dnfapps.arrmatey.utils.format
+import com.dnfapps.arrmatey.utils.koinInjectParams
 import com.dnfapps.arrmatey.utils.mokoString
 import org.koin.compose.koinInject
+import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -212,7 +218,6 @@ fun MediaDetailsScreen(
                                         },
                                         deleteSeasonFiles = { seasonNumber ->
                                             confirmDeleteSeasonNumber = seasonNumber
-//                                            mediaDetailsViewModel.deleteSeasonFiles(seasonNumber)
                                         },
                                         seasonDeleteInProgress = seasonDeleteStatus is OperationStatus.InProgress
                                     )
@@ -238,13 +243,17 @@ fun MediaDetailsScreen(
                                         },
                                         deleteAlbumFiles = {
                                             confirmDeleteAlbum = it
-//                                            mediaDetailsViewModel.deleteAlbumFiles(it)
                                         },
                                         albumDeleteInProgress = albumDeleteStatus is OperationStatus.InProgress,
                                     )
                                 }
 
-                                InfoArea(item, qualityProfiles, tags)
+                                val infoItems = when (item) {
+                                    is ArrSeries -> seriesInfo(item, qualityProfiles, tags)
+                                    is ArrMovie -> movieInfo(item, qualityProfiles, tags)
+                                    is Arrtist -> artistInfo(item, qualityProfiles, tags)
+                                }.toInfoList()
+                                InfoArea(infoItems)
                             }
 
                             Spacer(modifier = Modifier.height(12.dp))
@@ -448,7 +457,7 @@ private fun ConfirmDeleteAlert(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                 ),
-                enabled = deleteInProgress
+                enabled = !deleteInProgress
             ) {
                 if (deleteInProgress) {
                     CircularProgressIndicator(
@@ -607,5 +616,100 @@ private fun MenuButton(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun seriesInfo(
+    series: ArrSeries,
+    qualityProfiles: List<QualityProfile>,
+    tags: List<Tag>
+): Map<String, String> {
+    val qualityProfile = qualityProfiles.firstOrNull { it.id == series.qualityProfileId }
+    val tagsLabel = series.formatTags(tags) ?: mokoString(MR.strings.none)
+
+    val unknown = mokoString(MR.strings.unknown)
+    val monitorLabel = if (series.monitorNewItems == MonitorNewItems.All) {
+        mokoString(MR.strings.monitored)
+    } else { mokoString(MR.strings.unmonitored) }
+
+    val seasonFolderLabel = if (series.seasonFolder) {
+        mokoString(MR.strings.yes)
+    } else { mokoString(MR.strings.no) }
+
+    val diskSize = series.fileSize.bytesAsFileSizeString()
+
+    return mapOf(
+        mokoString(MR.strings.series_type) to series.seriesType.name,
+        mokoString(MR.strings.size_on_disk) to diskSize,
+        mokoString(MR.strings.root_folder) to (series.rootFolderPath ?: unknown),
+        mokoString(MR.strings.path) to (series.path ?: unknown),
+        mokoString(MR.strings.new_seasons) to monitorLabel,
+        mokoString(MR.strings.season_folders) to seasonFolderLabel,
+        mokoString(MR.strings.quality_profile) to (qualityProfile?.name ?: unknown),
+        mokoString(MR.strings.tags) to tagsLabel
+    )
+}
+
+@OptIn(ExperimentalTime::class)
+@Composable
+private fun movieInfo(
+    movie: ArrMovie,
+    qualityProfiles: List<QualityProfile>,
+    tags: List<Tag>
+): Map<String, String> {
+    val qualityProfile = qualityProfiles.firstOrNull { it.id == movie.qualityProfileId }
+    val tagsLabel = movie.formatTags(tags) ?: mokoString(MR.strings.none)
+
+    val unknown = mokoString(MR.strings.unknown)
+
+    val rootFolderPathValue = movie.rootFolderPath.takeUnless { it.isBlank() }
+        ?: mokoString(MR.strings.unknown)
+
+    return buildMap {
+        put(mokoString(MR.strings.minimum_availability), movie.minimumAvailability.name)
+        put(mokoString(MR.strings.root_folder), rootFolderPathValue)
+        put(mokoString(MR.strings.path), (movie.path ?: unknown))
+        movie.inCinemas?.format("MMM d, yyyy")?.let {
+            put(mokoString(MR.strings.in_cinemas), it)
+        }
+        movie.physicalRelease?.format("MMM d, yyyy")?.let {
+            put(mokoString(MR.strings.physical_release), it)
+        }
+        movie.digitalRelease?.format("MMM d, yyyy")?.let {
+            put(mokoString(MR.strings.digital_release), it)
+        }
+        put(mokoString(MR.strings.quality_profile), (qualityProfile?.name ?: unknown))
+        put(mokoString(MR.strings.tags), tagsLabel)
+    }
+
+}
+
+@Composable
+private fun artistInfo(
+    artist: Arrtist,
+    qualityProfiles: List<QualityProfile>,
+    tags: List<Tag>
+): Map<String, String> {
+    val qualityProfile = qualityProfiles.firstOrNull { it.id == artist.qualityProfileId }
+    val tagsLabel = artist.formatTags(tags) ?: mokoString(MR.strings.none)
+
+    val unknown = mokoString(MR.strings.unknown)
+    val monitorLabel = if (artist.monitorNewItems == ArtistMonitorType.All) {
+        mokoString(MR.strings.monitored)
+    } else { mokoString(MR.strings.unmonitored) }
+
+    val rootFolderPathValue = artist.rootFolderPath?.takeUnless { it.isBlank() }
+        ?: mokoString(MR.strings.unknown)
+
+    val diskSize = artist.fileSize.bytesAsFileSizeString()
+
+    return buildMap {
+        put(mokoString(MR.strings.size_on_disk), diskSize)
+        put(mokoString(MR.strings.root_folder), rootFolderPathValue)
+        put(mokoString(MR.strings.path), (artist.path ?: unknown))
+        put(mokoString(MR.strings.new_albums), monitorLabel)
+        put(mokoString(MR.strings.quality_profile), (qualityProfile?.name ?: unknown))
+        put(mokoString(MR.strings.tags), tagsLabel)
     }
 }

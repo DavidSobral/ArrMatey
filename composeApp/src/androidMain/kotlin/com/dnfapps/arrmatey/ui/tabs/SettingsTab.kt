@@ -11,9 +11,11 @@ import com.dnfapps.arrmatey.navigation.NavigationManager
 import com.dnfapps.arrmatey.navigation.SettingsNavigation
 import com.dnfapps.arrmatey.navigation.SettingsScreen
 import com.dnfapps.arrmatey.ui.screens.AddInstanceScreen
+import com.dnfapps.arrmatey.ui.screens.ArrInstanceDashboard
 import com.dnfapps.arrmatey.ui.screens.DevSettingsScreen
 import com.dnfapps.arrmatey.ui.screens.EditInstanceScreen
 import com.dnfapps.arrmatey.ui.screens.SettingsScreen
+import com.dnfapps.arrmatey.ui.screens.TabCustomizationScreen
 import org.koin.compose.koinInject
 
 @Composable
@@ -25,8 +27,8 @@ fun SettingsTabNavHost(
     val instances by instanceRepository.allInstancesFlow.collectAsStateWithLifecycle()
 
     BackHandler(enabled = navigation.backStack.size <= 1 && instances.isNotEmpty()) {
-        navigationManager.setDrawerOpen(false)
-        navigationManager.setSelectedDrawerTab(null)
+        navigationManager.closeOverlay()
+        navigationManager.closeDrawer()
     }
 
     NavDisplay(
@@ -37,6 +39,8 @@ fun SettingsTabNavHost(
             entry<SettingsScreen.AddInstance> { AddInstanceScreen(it.type) }
             entry<SettingsScreen.EditInstance> { EditInstanceScreen(it.id) }
             entry<SettingsScreen.Dev> { DevSettingsScreen() }
+            entry<SettingsScreen.TabPreferences> { TabCustomizationScreen() }
+            entry<SettingsScreen.ArrDashboard> { ArrInstanceDashboard(it.id) }
         }
     )
 }

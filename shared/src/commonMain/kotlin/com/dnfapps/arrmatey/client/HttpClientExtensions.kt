@@ -3,6 +3,7 @@ package com.dnfapps.arrmatey.client
 import io.ktor.client.*
 import io.ktor.client.call.body
 import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.*
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
@@ -55,24 +56,30 @@ suspend inline fun <reified T> HttpClient.safeCall(
     } catch (e: ClientRequestException) {
         // 4xx
         val status = e.response.status
-        NetworkResult.Error(code = status.value, message = status.description)
+        NetworkResult.Error(code = status.value, message = status.description, errorType = ErrorType.Http)
     } catch (e: ServerResponseException) {
         // 5xx
         val status = e.response.status
-        NetworkResult.Error(code = status.value, message = status.description)
+        NetworkResult.Error(code = status.value, message = status.description, errorType = ErrorType.Http)
     } catch (e: ResponseException) {
         // Any other non‑2xx mapped by Ktor into ResponseException
         val status = e.response.status
-        NetworkResult.Error(code = status.value, message = status.description)
+        NetworkResult.Error(code = status.value, message = status.description, errorType = ErrorType.Http)
     } catch (e: ConnectTimeoutException) {
-        NetworkResult.Error(message = "Failed to connect to server", cause = e)
+        NetworkResult.Error(message = "Request timed out", cause = e, errorType = ErrorType.Timeout)
+    } catch (e: HttpRequestTimeoutException) {
+        NetworkResult.Error(message = "Request timed out", cause = e, errorType = ErrorType.Timeout)
     } catch (e: Throwable) {
-        if (e.isNoConnectionError()) {
-            NetworkResult.Error(message = e.cause?.message ?: e.message, cause = e)
+        if (e.isTimeoutError()) {
+            NetworkResult.Error(message = "Request timed out", cause = e, errorType = ErrorType.Timeout)
+        } else if (e.isNoConnectionError()) {
+            NetworkResult.Error(message = e.cause?.message ?: e.message, cause = e, errorType = ErrorType.Network)
         } else {
-            NetworkResult.Error(cause = e)
+            NetworkResult.Error(cause = e, errorType = ErrorType.Unexpected)
         }
     }
 }
 
 expect fun Throwable.isNoConnectionError(): Boolean
+
+expect fun Throwable.isTimeoutError(): Boolean

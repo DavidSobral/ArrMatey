@@ -1,10 +1,13 @@
 package com.dnfapps.arrmatey.arr.api.client
 
 import com.dnfapps.arrmatey.arr.api.model.ArrAlbum
+import com.dnfapps.arrmatey.arr.api.model.ArrDiskSpace
+import com.dnfapps.arrmatey.arr.api.model.ArrHealth
 import com.dnfapps.arrmatey.arr.api.model.ArrMedia
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
 import com.dnfapps.arrmatey.arr.api.model.ArrRelease
 import com.dnfapps.arrmatey.arr.api.model.ArrSeries
+import com.dnfapps.arrmatey.arr.api.model.ArrSoftwareStatus
 import com.dnfapps.arrmatey.arr.api.model.CommandPayload
 import com.dnfapps.arrmatey.arr.api.model.CommandResponse
 import com.dnfapps.arrmatey.arr.api.model.DownloadReleasePayload
@@ -20,6 +23,10 @@ import com.dnfapps.arrmatey.client.NetworkResult
 import kotlinx.datetime.LocalDate
 
 interface ArrClient {
+    suspend fun testConnection(): NetworkResult<Unit>
+    suspend fun getStatus(): NetworkResult<ArrSoftwareStatus>
+    suspend fun getDiskSpace(): NetworkResult<List<ArrDiskSpace>>
+    suspend fun getHealth(): NetworkResult<List<ArrHealth>>
     suspend fun getLibrary(): NetworkResult<List<ArrMedia>>
     suspend fun getDetail(id: Long): NetworkResult<ArrMedia>
     suspend fun update(item: ArrMedia): NetworkResult<ArrMedia>

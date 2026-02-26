@@ -12,31 +12,28 @@ import com.dnfapps.arrmatey.compose.utils.SortOrder
 import com.dnfapps.arrmatey.datastore.InstancePreferences
 import com.dnfapps.arrmatey.instances.model.InstanceData
 import com.dnfapps.arrmatey.instances.model.InstanceType
-import com.dnfapps.arrmatey.instances.repository.InstanceScopedRepository
-import com.dnfapps.arrmatey.instances.usecase.GetInstanceRepositoryUseCase
-import com.dnfapps.arrmatey.instances.usecase.UpdatePreferencesUseCase
+import com.dnfapps.arrmatey.instances.repository.ArrInstanceRepository
+import com.dnfapps.arrmatey.instances.usecase.GetArrInstanceRepositoryUseCase
+import com.dnfapps.arrmatey.instances.usecase.UpdateInstancePreferencesUseCase
 import com.dnfapps.arrmatey.ui.theme.ViewType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ArrMediaViewModel(
     private val instanceType: InstanceType,
-    private val getInstanceRepositoryUseCase: GetInstanceRepositoryUseCase,
+    private val getArrInstanceRepositoryUseCase: GetArrInstanceRepositoryUseCase,
     private val getLibraryUseCase: GetLibraryUseCase,
-    private val updatePreferencesUseCase: UpdatePreferencesUseCase
+    private val updatePreferencesUseCase: UpdateInstancePreferencesUseCase
 ): ViewModel() {
 
     private val _addItemStatus = MutableStateFlow<OperationStatus>(OperationStatus.Idle)
@@ -54,9 +51,9 @@ class ArrMediaViewModel(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    private var currentRepository: InstanceScopedRepository? = null
+    private var currentRepository: ArrInstanceRepository? = null
 
-    private val selectedRepository = getInstanceRepositoryUseCase
+    private val selectedRepository = getArrInstanceRepositoryUseCase
         .observeSelected(instanceType)
         .filterNotNull()
         .distinctUntilChanged { old, new ->
@@ -135,13 +132,17 @@ class ArrMediaViewModel(
     private fun filterSuccessState(state: ArrLibrary.Success, query: String) =
         state.copy(
             items = state.items.filter {
-                it.sortTitle?.contains(query, ignoreCase = true) == true
+                it.title?.contains(query, ignoreCase = true) == true
             }
         )
 
     private fun handleErrorState(state: ArrLibrary.Error) {
         _errorMessage.value = state.message
         _hasServerConnectivityError.value = (state.type == ErrorType.Network)
+    }
+
+    fun resetErrorMessage() {
+        _errorMessage.value = null
     }
 
     fun executeAutomaticSearch(seriesId: Long) {

@@ -1,16 +1,17 @@
 package com.dnfapps.arrmatey.instances.repository
 
 import com.dnfapps.arrmatey.arr.api.client.ArrClient
-import com.dnfapps.arrmatey.arr.api.client.BaseArrClient
 import com.dnfapps.arrmatey.arr.api.client.LidarrClient
-import com.dnfapps.arrmatey.arr.api.client.ProwlarrClient
 import com.dnfapps.arrmatey.arr.api.client.RadarrClient
 import com.dnfapps.arrmatey.arr.api.client.SonarrClient
 import com.dnfapps.arrmatey.arr.api.model.ArrAlbum
+import com.dnfapps.arrmatey.arr.api.model.ArrDiskSpace
+import com.dnfapps.arrmatey.arr.api.model.ArrHealth
 import com.dnfapps.arrmatey.arr.api.model.ArrMedia
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
 import com.dnfapps.arrmatey.arr.api.model.ArrRelease
 import com.dnfapps.arrmatey.arr.api.model.ArrSeries
+import com.dnfapps.arrmatey.arr.api.model.ArrSoftwareStatus
 import com.dnfapps.arrmatey.arr.api.model.Arrtist
 import com.dnfapps.arrmatey.arr.api.model.CommandPayload
 import com.dnfapps.arrmatey.arr.api.model.DownloadReleasePayload
@@ -43,14 +44,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class InstanceScopedRepository(
-    val instance: Instance,
+class ArrInstanceRepository(
+    override val instance: Instance,
     private val httpClient: HttpClient
-) {
-    val client: BaseArrClient = createClient()
-
-    private val arrClient: ArrClient
-        get() = client as? ArrClient ?: throw IllegalStateException("Client for ${instance.type} does not implement ArrClient")
+): InstanceScopedRepository {
+    val client: ArrClient = createClient()
 
     val sonarrClient: SonarrClient
         get() = client as? SonarrClient ?: throw IllegalStateException("Client is not a SonarrClient instance")
@@ -61,15 +59,12 @@ class InstanceScopedRepository(
     val lidarrClient: LidarrClient
         get() = client as? LidarrClient ?: throw IllegalStateException("Client is not a LidarrClient instance")
 
-    val prowlarrClient: ProwlarrClient
-        get() = client as? ProwlarrClient ?: throw IllegalStateException("Client is not a ProwlarrClient instance")
-
-    private fun createClient(): BaseArrClient = when (instance.type) {
-            InstanceType.Sonarr -> SonarrClient(instance, httpClient)
-            InstanceType.Radarr -> RadarrClient(instance, httpClient)
-            InstanceType.Lidarr -> LidarrClient(instance, httpClient)
-            InstanceType.Prowlarr -> ProwlarrClient(instance, httpClient)
-        }
+    private fun createClient(): ArrClient = when (instance.type) {
+        InstanceType.Sonarr -> SonarrClient(instance, httpClient)
+        InstanceType.Radarr -> RadarrClient(instance, httpClient)
+        InstanceType.Lidarr -> LidarrClient(instance, httpClient)
+        else -> TODO()
+    }
 
     private val _library = MutableStateFlow<NetworkResult<List<ArrMedia>>?>(null)
     val library: StateFlow<NetworkResult<List<ArrMedia>>?> = _library.asStateFlow()
@@ -97,6 +92,15 @@ class InstanceScopedRepository(
 
     private val _tags = MutableStateFlow<List<Tag>>(emptyList())
     val tags: StateFlow<List<Tag>> = _tags.asStateFlow()
+
+    private val _softwareStatus = MutableStateFlow<ArrSoftwareStatus?>(null)
+    val softwareStatus: StateFlow<ArrSoftwareStatus?> = _softwareStatus.asStateFlow()
+
+    private val _diskSpace = MutableStateFlow<List<ArrDiskSpace>>(emptyList())
+    val diskSpace: StateFlow<List<ArrDiskSpace>> = _diskSpace.asStateFlow()
+
+    private val _health = MutableStateFlow<List<ArrHealth>>(emptyList())
+    val health: StateFlow<List<ArrHealth>> = _health.asStateFlow()
 
     private val _activityTasks = MutableStateFlow<List<QueueItem>>(emptyList())
     val activityTasks: StateFlow<List<QueueItem>> = _activityTasks.asStateFlow()
@@ -138,6 +142,10 @@ class InstanceScopedRepository(
     private val _artistTrackFiles = MutableStateFlow<Map<Long, Map<Long, List<LidarrTrackFile>>>>(emptyMap())
     val artistTrackFiles: StateFlow<Map<Long, Map<Long, List<LidarrTrackFile>>>> = _artistTrackFiles.asStateFlow()
 
+    override suspend fun testConnection(): NetworkResult<Unit> {
+        return client.testConnection()
+    }
+
     suspend fun refreshLibrary() {
         _library.value = NetworkResult.Loading
         _library.value = arrClient.getLibrary()
@@ -167,11 +175,35 @@ class InstanceScopedRepository(
             .onSuccess { _tags.value = it }
     }
 
+    suspend fun refreshStatus() {
+        client.getStatus()
+            .onSuccess { _softwareStatus.value = it }
+    }
+
+    suspend fun refreshDiskSpace() {
+        client.getDiskSpace()
+            .onSuccess { _diskSpace.value = it }
+    }
+
+    suspend fun refreshHealth() {
+        client.getHealth()
+            .onSuccess { _health.value = it }
+            .onError { i, string, throwable -> print("ERROR - $i, $string, $throwable") }
+    }
+
     suspend fun refreshAllMetadata() {
         coroutineScope {
             launch { refreshQualityProfiles() }
             launch { refreshRootFolders() }
             launch { refreshTags() }
+        }
+    }
+
+    suspend fun refreshInstanceStatuses() {
+        coroutineScope {
+            launch { refreshStatus() }
+            launch { refreshDiskSpace() }
+            launch { refreshHealth() }
         }
     }
 
@@ -598,7 +630,7 @@ class InstanceScopedRepository(
         seriesId: Long,
         seasonNumber: Int
     ): NetworkResult<Unit> =
-        safePerformSonarr { client ->
+        safePerformSonarr {
             val episodes = _episodes.value[seriesId]?.filter { it.seasonNumber == seasonNumber } ?: emptyList()
             deleteEpisodes(seriesId, episodes)
                 .onSuccess {

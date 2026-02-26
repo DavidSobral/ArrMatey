@@ -12,6 +12,16 @@
 
 <a href="https://www.buymeacoffee.com/owenlejeune" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-yellow.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
+## Downloads
+
+<a href="https://github.com/owenlejeune/ArrMatey/releases" target="_blank">
+<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on Github" align="center" height="80">
+</a>
+
+<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/owenlejeune/ArrMatey/">
+<img src="https://github.com/ImranR98/Obtainium/blob/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" align="center" height="54"/>
+</a>
+
 ## Features
 
 ### Multi-Instance Support
@@ -163,6 +173,8 @@ Any new strings should be added to strings.xml, or plurals.xml for plural string
   - **Custom Headers**: Add additional HTTP headers if needed
 6. Tap **Test Connection** to verify
 7. Save your instance
+
+If you use **Tailscale Funnel's** or **CloudFlare Tunnels**, additional setup steps can be found [here](https://github.com/owenlejeune/ArrMatey/issues/19)
 
 ### Custom Headers
 

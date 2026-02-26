@@ -4,6 +4,7 @@ import com.dnfapps.arrmatey.arr.api.client.GenericClient
 import com.dnfapps.arrmatey.arr.api.model.Episode
 import com.dnfapps.arrmatey.arr.viewmodel.ActivityQueueViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.AddInstanceViewModel
+import com.dnfapps.arrmatey.arr.viewmodel.ArrInstanceDashboardViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.ArrMediaDetailsViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.ArrMediaViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.ArrSearchViewModel
@@ -20,6 +21,7 @@ import com.dnfapps.arrmatey.arr.viewmodel.ProwlarrSearchViewModel
 import com.dnfapps.arrmatey.compose.utils.ReleaseFilterBy
 import com.dnfapps.arrmatey.datastore.PreferencesStore
 import com.dnfapps.arrmatey.instances.model.InstanceType
+import com.dnfapps.arrmatey.seerr.viewmodel.RequestsViewModel
 import com.dnfapps.arrmatey.utils.MokoStrings
 import org.koin.core.component.KoinComponent
 import org.koin.core.parameter.parametersOf
@@ -60,6 +62,12 @@ object KoinBridge: KoinComponent {
         getKoin().get { parametersOf(instanceId) }
 
     fun getCalendarViewModel(): CalendarViewModel =
+        getKoin().get()
+
+    fun getArrInstanceDashboardViewModel(instanceId: Long): ArrInstanceDashboardViewModel =
+        getKoin().get { parametersOf(instanceId) }
+
+    fun getRequestsViewModel(): RequestsViewModel =
         getKoin().get()
 
     fun getProwlarrIndexersViewModel(): ProwlarrIndexersViewModel =

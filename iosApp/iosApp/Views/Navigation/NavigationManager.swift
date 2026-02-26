@@ -13,9 +13,14 @@ class NavigationManager: ObservableObject {
     @Published var seriesPath = NavigationPath()
     @Published var moviePath = NavigationPath()
     @Published var musicPath = NavigationPath()
+    @Published var launcherPath = NavigationPath()
     
     @Published var selectedTab: TabItem = .shows
     @Published var selectedDrawerTab: TabItem? = nil
+    
+    @Published var showLauncher: Bool = false
+    
+    private var pendingSettingsRoute: SettingsRoute? = nil
     
     func go(to route: MediaRoute, of type: InstanceType) {
         switch type {
@@ -51,8 +56,53 @@ class NavigationManager: ObservableObject {
     }
     
     func goToNewInstance(of type: InstanceType) {
-        setSelectedDrawerTab(.settings)
-        go(to: .newInstance(type))
+        switch type {
+        case .sonarr: seriesPath = NavigationPath()
+        case .radarr: moviePath = NavigationPath()
+        case .lidarr: musicPath = NavigationPath()
+        }
+
+        launcherPath = NavigationPath()
+        pendingSettingsRoute = .newInstance(type)
+        
+        showLauncher = true
+    }
+    
+    func goToEditInstance(of type: InstanceType, _ id: Int64) {
+        switch type {
+        case .sonarr: seriesPath = NavigationPath()
+        case .radarr: moviePath = NavigationPath()
+        case .lidarr: musicPath = NavigationPath()
+        }
+
+        launcherPath = NavigationPath()
+        pendingSettingsRoute = .editInstance(id)
+        
+        showLauncher = true
+    }
+    
+    func maybeEditInstance(of type: InstanceType, _ instance: Instance?) {
+        if let i = instance {
+            goToEditInstance(of: type, i.id)
+        }
+    }
+
+    func applyPendingRoute() {
+        if let route = pendingSettingsRoute {
+            launcherPath.append(route)
+            pendingSettingsRoute = nil
+        }
+    }
+    
+    func completeSetupAndDismiss() {
+        self.showLauncher = false
+        
+        self.launcherPath = NavigationPath()
+        self.settingsPath = NavigationPath()
+        
+        self.seriesPath = NavigationPath()
+        self.moviePath = NavigationPath()
+        self.musicPath = NavigationPath()
     }
 }
 
@@ -78,4 +128,6 @@ enum SettingsRoute : Hashable {
     case newInstance(_ : InstanceType = .sonarr)
     case dev
     case editInstance(Int64)
+    case navigationConfig
+    case arrDashboard(Int64)
 }

@@ -31,6 +31,7 @@ kotlin {
             implementation(libs.androidx.compose.window.size)
             implementation(libs.androidx.browser)
             implementation(libs.aboutlibraries.compose)
+            implementation(libs.reorderable)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -70,8 +71,8 @@ android {
         applicationId = "com.dnfapps.arrmatey"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "0.0.1"
+        versionCode = 5
+        versionName = "0.0.3.3"
     }
     packaging {
         resources {
@@ -80,7 +81,8 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
         }
     }
     compileOptions {
@@ -89,6 +91,12 @@ android {
     }
     buildFeatures {
         buildConfig = true
+    }
+    dependenciesInfo {
+        // Disables dependency metadata when building APKs (for IzzyOnDroid/F-Droid)
+        includeInApk = false
+        // Disables dependency metadata when building Android App Bundles (for Google Play)
+        includeInBundle = false
     }
 }
 
@@ -101,22 +109,4 @@ aboutLibraries {
         outputFile = file(layout.projectDirectory.file("../shared/src/commonMain/resources/aboutLibraries.json"))
         prettyPrint = true
     }
-}
-
-tasks.register<Copy>("exportLibrariesToIOS") {
-    group = "build"
-    description = "Copy AboutLibraries JSON from shared to iOS"
-
-    dependsOn("exportLibraryDefinitions")
-
-    from(layout.projectDirectory.dir("../shared/src/commonMain/resources"))
-    into(layout.projectDirectory.dir("../iosApp/iosApp/Resources"))
-    include("aboutLibraries.json")
-}
-
-afterEvaluate {
-    tasks.matching { it.name.startsWith("compile") && it.name.contains("Kotlin") }
-        .configureEach {
-            finalizedBy(tasks.named("exportLibrariesToIOS"))
-        }
 }

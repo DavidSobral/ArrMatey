@@ -1,6 +1,5 @@
 package com.dnfapps.arrmatey.ui.screens
 
-import com.dnfapps.arrmatey.shared.MR
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,8 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dnfapps.arrmatey.arr.viewmodel.EditInstanceViewModel
 import com.dnfapps.arrmatey.database.dao.InsertResult
-import com.dnfapps.arrmatey.di.koinInjectParams
 import com.dnfapps.arrmatey.navigation.SettingsNavigation
+import com.dnfapps.arrmatey.shared.MR
+import com.dnfapps.arrmatey.utils.koinInjectParams
 import com.dnfapps.arrmatey.utils.mokoString
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -68,7 +68,7 @@ fun EditInstanceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = mokoString(MR.strings.add_instance)) },
+                title = { Text(text = mokoString(MR.strings.edit_instance)) },
                 navigationIcon = {
                     IconButton(
                         onClick = { settingsNav.popBackStack() }
@@ -130,35 +130,41 @@ fun EditInstanceScreen(
                     onCustomTimeoutChanged = { viewModel.setCustomTimeout(it) },
                     onHeadersChanged = { viewModel.updateHeaders(it) },
                     onTestConnection = { viewModel.testConnection() },
+                    onLocalNetworkEnabledChanged = { viewModel.setLocalNetworkEnabled(it) },
+                    onLocalNetworkUrlChanged = { viewModel.setLocalNetworkUrl(it) },
+                    onLocalNetworkSsidChanged = { viewModel.setLocalNetworkSsid(it) },
+                    onTestLocalConnection = { viewModel.testLocalConnection() }
                 )
+            }
 
-                if (confirmDelete) {
-                    AlertDialog(
-                        onDismissRequest = { confirmDelete = false},
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    scope.launch {
+            if (confirmDelete) {
+                AlertDialog(
+                    onDismissRequest = { confirmDelete = false},
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                scope.launch {
+                                    instance?.let { instance ->
                                         viewModel.deleteInstance(instance)
                                         settingsNav.popBackStack()
                                     }
                                 }
-                            ) { Text(mokoString(MR.strings.yes)) }
-                        },
-                        dismissButton = {
-                            TextButton(
-                                onClick = {
-                                    confirmDelete = false
+                            }
+                        ) { Text(mokoString(MR.strings.yes)) }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                confirmDelete = false
 
-                                }
-                            ) { Text(mokoString(MR.strings.no)) }
-                        },
-                        title = { Text(mokoString(MR.strings.confirm)) },
-                        text = {
-                            Text(mokoString(MR.strings.confirm_delete_instance, instance.label))
-                        }
-                    )
-                }
+                            }
+                        ) { Text(mokoString(MR.strings.no)) }
+                    },
+                    title = { Text(mokoString(MR.strings.confirm)) },
+                    text = {
+                        Text(mokoString(MR.strings.confirm_delete_instance, instance?.label ?: ""))
+                    }
+                )
             }
         }
     }

@@ -10,7 +10,7 @@ import com.dnfapps.arrmatey.instances.usecase.DismissInfoCardUseCase
 import com.dnfapps.arrmatey.arr.usecase.DownloadReleaseUseCase
 import com.dnfapps.arrmatey.arr.usecase.GetActivityTasksUseCase
 import com.dnfapps.arrmatey.instances.usecase.GetInstanceByIdUseCase
-import com.dnfapps.arrmatey.instances.usecase.GetInstanceRepositoryUseCase
+import com.dnfapps.arrmatey.instances.usecase.GetArrInstanceRepositoryUseCase
 import com.dnfapps.arrmatey.arr.usecase.GetLibraryUseCase
 import com.dnfapps.arrmatey.arr.usecase.GetLookupResultsUseCase
 import com.dnfapps.arrmatey.arr.usecase.GetMediaDetailsUseCase
@@ -22,9 +22,9 @@ import com.dnfapps.arrmatey.instances.usecase.ObserveSelectedInstanceScopedRepoU
 import com.dnfapps.arrmatey.instances.usecase.ObserveSelectedInstanceUseCase
 import com.dnfapps.arrmatey.arr.usecase.PerformLookupUseCase
 import com.dnfapps.arrmatey.instances.usecase.SetInstanceActiveUseCase
-import com.dnfapps.arrmatey.instances.usecase.TestInstanceConnectionUseCase
+import com.dnfapps.arrmatey.instances.usecase.TestNewInstanceConnectionUseCase
 import com.dnfapps.arrmatey.instances.usecase.UpdateInstanceUseCase
-import com.dnfapps.arrmatey.instances.usecase.UpdatePreferencesUseCase
+import com.dnfapps.arrmatey.instances.usecase.UpdateInstancePreferencesUseCase
 import com.dnfapps.arrmatey.arr.viewmodel.ActivityQueueViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.AddInstanceViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.ArrMediaDetailsViewModel
@@ -54,6 +54,7 @@ import com.dnfapps.arrmatey.arr.usecase.PerformAutomaticSearchUseCase
 import com.dnfapps.arrmatey.arr.usecase.PerformRefreshUseCase
 import com.dnfapps.arrmatey.arr.usecase.ToggleMonitorUseCase
 import com.dnfapps.arrmatey.arr.usecase.UpdateMediaUseCase
+import com.dnfapps.arrmatey.arr.viewmodel.ArrInstanceDashboardViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.CalendarViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.ProwlarrIndexersViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.ProwlarrSearchViewModel
@@ -65,6 +66,12 @@ import com.dnfapps.arrmatey.datastore.DataStoreFactory
 import com.dnfapps.arrmatey.datastore.InstancePreferenceStoreRepository
 import com.dnfapps.arrmatey.datastore.PreferencesStore
 import com.dnfapps.arrmatey.instances.model.InstanceType
+import com.dnfapps.arrmatey.instances.usecase.GetSeerrInstanceRepositoryUseCase
+import com.dnfapps.arrmatey.instances.usecase.TestInstanceConnectionUseCase
+import com.dnfapps.arrmatey.instances.usecase.UpdateCalendarFilterPreferenceUseCase
+import com.dnfapps.arrmatey.seerr.usecase.GetCurrentSeerrUserUseCase
+import com.dnfapps.arrmatey.seerr.usecase.GetRequestsUseCase
+import com.dnfapps.arrmatey.seerr.viewmodel.RequestsViewModel
 import com.dnfapps.arrmatey.utils.MokoStrings
 import com.dnfapps.arrmatey.utils.NetworkConnectivityObserverFactory
 import com.dnfapps.arrmatey.utils.NetworkConnectivityRepository
@@ -72,7 +79,6 @@ import io.ktor.client.plugins.logging.Logger
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import kotlin.math.sin
 
 val databaseModule = module {
     single { getRoomDatabase(get()) }
@@ -115,10 +121,10 @@ val serviceModule = module {
 }
 
 val useCaseModule = module {
-    factory { GetInstanceRepositoryUseCase(get()) }
+    factory { GetArrInstanceRepositoryUseCase(get()) }
     factory { GetLibraryUseCase(get(), get()) }
     factory { GetMediaDetailsUseCase(get()) }
-    factory { UpdatePreferencesUseCase(get()) }
+    factory { UpdateInstancePreferencesUseCase(get()) }
     factory { AddMediaItemUseCase(get()) }
     factory { GetActivityTasksUseCase(get()) }
     factory { ObserveAllInstancesByTypeUseCase(get()) }
@@ -133,6 +139,7 @@ val useCaseModule = module {
     factory { DownloadReleaseUseCase(get()) }
     factory { GetMovieFilesUseCase(get()) }
     factory { TestInstanceConnectionUseCase(get()) }
+    factory { TestNewInstanceConnectionUseCase(get()) }
     factory { CreateInstanceUseCase(get()) }
     factory { UpdateInstanceUseCase(get()) }
     factory { DismissInfoCardUseCase(get()) }
@@ -151,6 +158,10 @@ val useCaseModule = module {
     factory { DeleteAlbumFilesUseCase() }
     factory { GetProwlarrIndexersUseCase(get()) }
     factory { PerformProwlarrSearchUseCase(get()) }
+    factory { UpdateCalendarFilterPreferenceUseCase(get()) }
+    factory { GetSeerrInstanceRepositoryUseCase(get()) }
+    factory { GetCurrentSeerrUserUseCase() }
+    factory { GetRequestsUseCase() }
 }
 
 val viewModelModule = module {
@@ -179,14 +190,18 @@ val viewModelModule = module {
     factory { (seriesId: Long, episode: Episode) ->
         EpisodeDetailsViewModel(seriesId, episode, get(), get(), get(), get(), get())
     }
-    factory { MoreScreenViewModel(get()) }
+    factory { MoreScreenViewModel(get(), get()) }
     factory { AddInstanceViewModel(get(), get(), get(), get()) }
     factory { (instanceId: Long) ->
         EditInstanceViewModel(instanceId, get(), get(), get(), get())
     }
-    factory { CalendarViewModel(get(), get()) }
+    factory { (instanceId: Long) ->
+        ArrInstanceDashboardViewModel(instanceId, get())
+    }
+    factory { CalendarViewModel(get(), get(), get(), get()) }
     factory { ProwlarrIndexersViewModel(get(), get()) }
     factory { ProwlarrSearchViewModel(get(), get()) }
+    factory { RequestsViewModel(get(), get(), get()) }
 }
 
 val resourcesModule = module {

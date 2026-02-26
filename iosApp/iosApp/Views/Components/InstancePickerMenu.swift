@@ -9,9 +9,9 @@ import SwiftUI
 import Shared
 
 struct InstancePickerMenu: View {
-    let type: InstanceType
     let instances: [Instance]
     let onChangeInstance: (Instance) -> Void
+    let onAddNewInstance: () -> Void
     
     @EnvironmentObject private var navigationManager: NavigationManager
     
@@ -32,9 +32,7 @@ struct InstancePickerMenu: View {
                 }
             }
             Divider()
-            Button(action: {
-                navigationManager.goToNewInstance(of: type)
-            }) {
+            Button(action: onAddNewInstance) {
                 Label(MR.strings().add_instance.localized(), systemImage: "plus")
             }
         } label: {

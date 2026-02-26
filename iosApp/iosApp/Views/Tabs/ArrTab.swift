@@ -84,9 +84,16 @@ struct ArrTab: View {
             }
         } else if let success = uiState as? ArrLibrarySuccess {
             ArrLibraryView(type: type, state: success, searchQuery: $arrMediaViewModel.searchQuery, searchPresented: $searchPresented)
-    } else if uiState is ArrLibraryError {
+        } else if let error = uiState as? ArrLibraryError {
             ZStack {
-                errorView()
+                ErrorView(
+                    errorType: error.type,
+                    message: error.message,
+                    onOpenSettings: {
+                        navigation.maybeEditInstance(of: type, instanceState.selectedInstance)
+                    },
+                    onRetry: { arrMediaViewModel.refresh() }
+                )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
@@ -105,9 +112,9 @@ struct ArrTab: View {
         
         ToolbarItem(placement: .topBarLeading) {
             InstancePickerMenu(
-                type: type,
                 instances: instanceState.instances,
-                onChangeInstance: { instancesViewModel.setInstanceActive($0) }
+                onChangeInstance: { instancesViewModel.setInstanceActive($0) },
+                onAddNewInstance: { navigation.goToNewInstance(of: type) }
             )
             .menuIndicator(.hidden)
         }

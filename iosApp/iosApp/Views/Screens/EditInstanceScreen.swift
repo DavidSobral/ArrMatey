@@ -17,10 +17,12 @@ struct EditInstanceScreen: View {
     
     @State private var showDeleteConfirmation: Bool = false
     @State private var saveClicked: Bool = false
+    private let onSaveSuccess: () -> Void
     
-    init(id: Int64) {
+    init(id: Int64, onSaveSuccess: @escaping () -> Void) {
         self.id = id
         self.viewModel = EditInstanceViewModelS(id)
+        self.onSaveSuccess = onSaveSuccess
     }
     
     private var uiState: AddInstanceUiState {
@@ -50,6 +52,7 @@ struct EditInstanceScreen: View {
             .onChange(of: editSuccess) { _, newValue in
                 if newValue {
                     dismiss()
+                    onSaveSuccess()
                 }
             }
     }
@@ -65,6 +68,10 @@ struct EditInstanceScreen: View {
             onCustomTimeoutChanged: { viewModel.setCustomTimeout($0) },
             onHeadersChanged: { viewModel.updateHeaders($0) },
             onTestConnection: { viewModel.testConnection() },
+            onLocalNetworkEnabledChanged: { viewModel.setLocalNetworkEnabled($0) },
+            onLocalNetworkUrlChanged: { viewModel.setLocalNetworkUrl($0) },
+            onLocalNetworkSsidChanged: { viewModel.setLocalNetworkSsid($0) },
+            onTestLocalConnection: { viewModel.testLocalConnection() },
             onDismissInfoCard: { _ in },
             showInfoCard: false,
             showInstancePicker: false,

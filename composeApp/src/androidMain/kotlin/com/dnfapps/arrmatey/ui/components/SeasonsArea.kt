@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.ExpandCircleDown
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -68,8 +69,7 @@ fun SeasonsArea(
     ) {
         Text(
             text = mokoString(MR.strings.seasons_header),
-            fontWeight = FontWeight.Medium,
-            fontSize = 26.sp
+            style = MaterialTheme.typography.headlineSmall
         )
         series.seasons.sortedByDescending { it.seasonNumber }.forEach { season ->
             var expanded by rememberSaveable { mutableStateOf(false) }

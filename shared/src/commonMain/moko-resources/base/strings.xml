@@ -2,6 +2,7 @@
     <!-- General -->
     <string name="app_name">ArrMatey</string>
     <string name="app_link">https://github.com/owenlejeune/ArrMatey</string>
+    <string name="bug_report_link">https://github.com/owenlejeune/ArrMatey/issues/new/choose</string>
     <string name="bmac_link">https://buymeacoffee.com/owenlejeune</string>
     <string name="version_label">Version %1$s</string>
 
@@ -12,6 +13,7 @@
     <string name="music">Music</string>
     <string name="indexers">Indexers</string>
     <string name="home">Home</string>
+    <string name="requests">Requests</string>
 
     <string name="type_series">series</string>
     <string name="type_movie">movie</string>
@@ -19,6 +21,7 @@
 
     <!-- Titles -->
     <string name="add_instance">Add instance</string>
+    <string name="edit_instance">Edit instance</string>
     <string name="instances">Instances</string>
     <string name="couldnt_connect">Couldn\'t Connect</string>
     <string name="no_type_instances">No %1$s instances</string>
@@ -181,6 +184,14 @@
     <string name="header_value">Header Value</string>
     <string name="donate">Donate</string>
     <string name="libraries">Libraries</string>
+    <string name="press_again_to_exit">Press back again to exit</string>
+    <string name="health">Health</string>
+    <string name="disk_space">Disk space</string>
+    <string name="system_info">System details</string>
+    <string name="no_issues">No issues</string>
+    <string name="user_interface">User Interface</string>
+    <string name="invalid_url">Invalid URL</string>
+    <string name="bug_report">Bug report</string>
 
     <!-- History Event Type -->
     <string name="grabbed">Grabbed</string>
@@ -209,12 +220,20 @@
     <string name="add_exclusion_description">Prevent this item from being readded to your library by lists</string>
     <string name="delete_files">Delete Files</string>
     <string name="delete_files_description">Permanently erase the folder and its contents</string>
+    <string name="error_timeout_title">Request Timed Out</string>
+    <string name="error_timeout_description">The search took too long to complete. This can happen with slower indexers or network connections.</string>
+    <string name="error_timeout_configure_instance">Configure Instance</string>
+    <string name="error_timeout_tip">Tip: Enable "%1$s" in instance settings for indexers that need more time.</string>
+    <string name="error_network_title">Network Error</string>
+    <string name="error_generic_title">Something went wrong</string>
+
 
     <!-- Instances -->
     <string name="sonarr_description">Sonarr is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new episodes of your favorite shows and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.</string>
     <string name="radarr_description">Radarr is a movie collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new movies and will interface with clients and indexers to grab, sort, and rename them. It can also be configured to automatically upgrade the quality of existing files in the library when a better quality format becomes available</string>
     <string name="lidarr_description">Lidarr is a music collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new tracks from your favorite artists and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.</string>
     <string name="prowlarr_description">Prowlarr is an indexer manager/proxy built on the popular *arr .net/reactjs base stack to integrate with your various PVR apps. Prowlarr supports management of both Torrent Trackers and Usenet Indexers.</string>
+    <string name="seerr_description">Seerr is a free and open source software application for managing requests for your media library. It integrates with the media server of your choice: Jellyfin, Plex, and Emby. In addition, it integrates with your existing services, such as Sonarr, Radarr.</string>
 
     <!-- Movie Statuses -->
     <string name="tba">TBA</string>
@@ -279,5 +298,55 @@
     <string name="thu">Thu</string>
     <string name="fri">Fri</string>
     <string name="sat">Sat</string>
+
+    <!-- Tab Configuration -->
+    <string name="navigation_bar_configuration">Navigation bar configuration</string>
+    <string name="navigation_items_selected">Navigation Bar</string>
+    <string name="navigation_items_drawer">Drawer</string>
+    <string name="customize_navigation">Customize Navigation</string>
+    <string name="customize_navigation_description">Drag items to reorder your navigation bar. Items moved to the 'Drawer' section will be accessible via the drawer menu. You can have at most five items in the navigation bar, and must have at least one item. If there is only one item in the navigation bar section, the navigation bar will be hidden.</string>
+
+    <!-- Platform -->
+    <string name="linux">Linux</string>
+    <string name="macos">macOS</string>
+    <string name="windows">Windows</string>
+    <string name="docker">Docker</string>
+
+    <!-- Dashboard -->
+    <string name="location">Location</string>
+    <string name="free_space">Free Space</string>
+    <string name="total_space">Total Space</string>
+    <string name="host_endpoint">Host Endpoint</string>
+    <string name="version">Version</string>
+    <string name="startup_path">Startup Path</string>
+    <string name="app_data_path">App Data Path</string>
+    <string name="host_platform">Host Platform</string>
+    <string name="host_os">Host OS</string>
+    <string name="free_space_lowercase">free space</string>
+
+    <!-- Permissions -->
+    <string name="location_denied">Location permissions denied</string>
+    <string name="location_denied_message">Location permissions are required for local network switching to work. Please enable location permissions in Settings.</string>
+    <string name="open_location_permissions">Open location permission settings</string>
+    <string name="location_rationale_title">Location Access Required</string>
+    <string name="location_rationale_description_android">Android requires Location permission to reveal the name of your Wi-Fi network. This allows ArrMatey to know when you are at home to use your local server address. None of your location information is collected, stored, or transmitted off of your device.</string>
+    <string name="location_rationale_description_ios">iOS requires Location permission to reveal the name of your Wi-Fi network. This allows ArrMatey to know when you are at home to use your local server address. None of your location information is collected, stored, or transmitted off of your device.</string>
+
+    <!-- Local Network Switching -->
+    <string name="ssid_get_error">Couldn\'t get current WiFi SSID</string>
+    <string name="use_current_network">Use current network</string>
+    <string name="use_local_network">Use local network</string>
+    <string name="local_network_switching">Local Network Switching</string>
+    <string name="local_network_description">Use a different URL when connected to your home WiFi</string>
+    <string name="local_network_url">Local Network URL</string>
+    <string name="wifi_network_name">WiFi Network Name (SSID)</string>
+    <string name="wifi_ssid_description">The name of your WiFi network</string>
+    <string name="current_network">Currently connected to: %s</string>
+    <string name="test_local_connection">Test Local Connection</string>
+
+    <!-- Crash Reporting -->
+    <string name="crash_report_subject">ArrMatey Crash Report</string>
+    <string name="share_crash_log">Share Crash Log</string>
+    <string name="share_crash_log_message">It looks like the app crashed the last time you were using it. Would you like to share the crash log? You will be able to copy the log to paste into GitHub or you can share to GitHub directly to open an issue.</string>
 
 </resources>

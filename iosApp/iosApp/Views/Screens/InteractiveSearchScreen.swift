@@ -11,28 +11,30 @@ import SwiftUI
 struct InteractiveSearchScreen: View {
     private let type: InstanceType
     private let releaseParams: ReleaseParams
-    
+
     @ObservedObject private var viewModel: InteractiveSearchViewModelS
-    
-    @Environment(\.dismiss) private var dismiss
-    
+    @ObservedObject private var instancesViewModel: InstancesViewModelS
+
+    @EnvironmentObject private var navigationManager: NavigationManager
+
     @State private var searchPresented: Bool = false
     @State private var confirmRelease: ArrRelease? = nil
-    
+
     private var filterBinding: Binding<ReleaseFilterBy>
     private var filterLanguageBinding: Binding<Language?>
     private var filterQualityBinding: Binding<QualityInfo?>
     private var filterCustomFormatBinding: Binding<CustomFormat?>
     private var filterProtocolBinding: Binding<ReleaseProtocol?>
     private var filterIndexerBinding: Binding<String?>
-    
+
     init(type: InstanceType, releaseParams: ReleaseParams, defaultFilter: ReleaseFilterBy = .any) {
         self.type = type
         self.releaseParams = releaseParams
-        
+
         let vm = InteractiveSearchViewModelS(type: type, defaultFilter: defaultFilter)
         self.viewModel = vm
-        
+        self.instancesViewModel = InstancesViewModelS(type: type)
+
         self.filterBinding = Binding(
             get: { vm.filterUiState.filterBy },
             set: { vm.setFilterby($0) }
@@ -58,7 +60,7 @@ struct InteractiveSearchScreen: View {
             set: { vm.setFilterIndexer($0) }
         )
     }
-    
+
     var body: some View {
         ZStack {
             contentForState()
@@ -84,7 +86,7 @@ struct InteractiveSearchScreen: View {
             toolbarContent
         }
     }
-    
+
     @ViewBuilder
     private func contentForState() -> some View {
         switch viewModel.releaseUiState {
@@ -96,7 +98,7 @@ struct InteractiveSearchScreen: View {
                 LazyVStack(spacing: 18) {
                     ForEach(success.items, id: \.guid) { item in
                         let isLoading = (viewModel.downloadReleaseState as? DownloadStateLoading)?.guid == item.guid
-                        
+
                         ReleaseItemView(item: item, animate: isLoading, onItemClick: { release in
                             if release.downloadAllowed {
                                 viewModel.downloadRelease(release, false)
@@ -109,13 +111,21 @@ struct InteractiveSearchScreen: View {
                 .padding(.horizontal, 18)
             }
         case let error as ReleaseLibraryError:
-            Text(error.message)
-                .foregroundColor(.red)
+            ErrorView(
+                errorType: error.type,
+                message: error.message,
+                onOpenSettings: {
+                    navigationManager.maybeEditInstance(of: type, instancesViewModel.instancesState.selectedInstance)
+                },
+                onRetry: {
+                    viewModel.getRelease(releaseParams)
+                }
+            )
         default:
             EmptyView()
         }
     }
-    
+
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
@@ -131,29 +141,29 @@ struct InteractiveSearchScreen: View {
             )
             .menuIndicator(.hidden)
         }
-        
+
         ToolbarItem(placement: .primaryAction) {
             ReleaseFilterByPickerMenu(filterBy: filterBinding, filterQuality: filterQualityBinding, filterLanguage: filterLanguageBinding, filterIndexer: filterIndexerBinding, filterProtocol: filterProtocolBinding, filterCustomFormat: filterCustomFormatBinding, type: type, languages: languages, indexers: indexers, qualities: qualities, protocols: protocols, customFormats: customFormats)
             .menuIndicator(.hidden)
         }
     }
-    
+
     private var languages: Set<Language> {
         (viewModel.releaseUiState as? ReleaseLibrarySuccess)?.filterLanguages ?? Set()
     }
-    
+
     private var qualities: Set<QualityInfo> {
         (viewModel.releaseUiState as? ReleaseLibrarySuccess)?.filterQualities ?? Set()
     }
-    
+
     private var customFormats: Set<CustomFormat> {
         (viewModel.releaseUiState as? ReleaseLibrarySuccess)?.filterCustomFormats ?? Set()
     }
-    
+
     private var protocols: Set<ReleaseProtocol> {
         (viewModel.releaseUiState as? ReleaseLibrarySuccess)?.filterProtocols ?? Set()
     }
-    
+
     private var indexers: Set<String> {
         (viewModel.releaseUiState as? ReleaseLibrarySuccess)?.filterIndexers ?? Set()
     }

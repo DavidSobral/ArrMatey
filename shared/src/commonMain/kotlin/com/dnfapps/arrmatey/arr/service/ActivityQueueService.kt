@@ -21,7 +21,7 @@ class ActivityQueueService(
     private val instanceManager: InstanceManager,
     private val preferencesStore: PreferencesStore
 ) {
-    private val pollingDelay = 10_000L
+    private val pollingDelay = 30_000L
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var pollingJob: Job? = null
@@ -54,7 +54,7 @@ class ActivityQueueService(
     private suspend fun pollActivityTasks() {
         if (preferencesStore.isPollingEnabled) {
             _isPolling.value = true
-            val repositories = instanceManager.getAllRepositories()
+            val repositories = instanceManager.getAllArrRepositories()
                 .filter { it.instance.type.supportsActivityQueue }
 
             val allTasks = repositories.map { repo ->

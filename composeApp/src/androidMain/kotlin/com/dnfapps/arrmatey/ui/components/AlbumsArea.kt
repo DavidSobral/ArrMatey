@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.ExpandCircleDown
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,8 +61,7 @@ fun AlbumsArea(
     ) {
         Text(
             text = mokoString(MR.strings.albums_header),
-            fontWeight = FontWeight.Medium,
-            fontSize = 26.sp
+            style = MaterialTheme.typography.headlineSmall
         )
         albums.forEach { album ->
             var expanded by rememberSaveable { mutableStateOf(false) }

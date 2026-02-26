@@ -91,3 +91,15 @@ extension Kotlinx_datetimeMonth {
         return ordinal+1
     }
 }
+
+extension ArrDiskSpace: @retroactive Identifiable {
+    public var id: String {
+        return self.path ?? self.label ?? UUID().uuidString
+    }
+}
+
+extension ArrHealth: @retroactive Identifiable {
+    public var id: String {
+        return "\(String(describing: self.source)) \(self.type.name)"
+    }
+}

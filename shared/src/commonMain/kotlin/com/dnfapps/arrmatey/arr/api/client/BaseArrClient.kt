@@ -1,6 +1,8 @@
 package com.dnfapps.arrmatey.arr.api.client
 
-import com.dnfapps.arrmatey.arr.api.model.ArrMedia
+import com.dnfapps.arrmatey.arr.api.model.ArrDiskSpace
+import com.dnfapps.arrmatey.arr.api.model.ArrHealth
+import com.dnfapps.arrmatey.arr.api.model.ArrSoftwareStatus
 import com.dnfapps.arrmatey.arr.api.model.CommandPayload
 import com.dnfapps.arrmatey.arr.api.model.CommandResponse
 import com.dnfapps.arrmatey.arr.api.model.DownloadReleasePayload
@@ -22,25 +24,28 @@ import org.koin.core.component.KoinComponent
 
 abstract class BaseArrClient(
     protected val httpClient: HttpClient
-): KoinComponent {
+): KoinComponent, ArrClient {
     protected abstract val instance: Instance
 
     protected val baseUrl: String
-        get() = "${instance.url}/${instance.type.apiBase}"
+        get() = "${instance.getEffectiveBaseUrl()}/${instance.type.apiBase}"
 
-    open suspend fun getQualityProfiles(): NetworkResult<List<QualityProfile>> =
+    override suspend fun testConnection(): NetworkResult<Unit> =
+        get(instance.type.testEndpoint)
+
+    override suspend fun getQualityProfiles(): NetworkResult<List<QualityProfile>> =
         get("qualityprofile")
 
-    open suspend fun getRootFolders(): NetworkResult<List<RootFolder>> =
+    override suspend fun getRootFolders(): NetworkResult<List<RootFolder>> =
         get("rootfolder")
 
-    open suspend fun getTags(): NetworkResult<List<Tag>> =
+    override suspend fun getTags(): NetworkResult<List<Tag>> =
         get("tag")
 
-    open suspend fun command(payload: CommandPayload): NetworkResult<CommandResponse> =
+    override suspend fun command(payload: CommandPayload): NetworkResult<CommandResponse> =
         post("command", payload)
 
-    open suspend fun fetchActivityTasks(
+    override suspend fun fetchActivityTasks(
         page: Int,
         pageSize: Int
     ): NetworkResult<QueuePage> =
@@ -54,12 +59,12 @@ abstract class BaseArrClient(
             "includeArtist" to true
         )).map { it.setInstance(instance.id, instance.label) }
 
-    open suspend fun downloadRelease(
+    override suspend fun downloadRelease(
         payload: DownloadReleasePayload
     ): NetworkResult<Any> =
         post("release", payload)
 
-    open suspend fun deleteActivityTask(
+    override suspend fun deleteActivityTask(
         id: Int,
         removeFromClient: Boolean,
         blocklist: Boolean,
@@ -70,6 +75,15 @@ abstract class BaseArrClient(
             "blocklist" to blocklist,
             "skipRedownload" to skipRedownload
         ))
+
+    override suspend fun getStatus(): NetworkResult<ArrSoftwareStatus> =
+        get("system/status")
+
+    override suspend fun getDiskSpace(): NetworkResult<List<ArrDiskSpace>> =
+        get("diskspace")
+
+    override suspend fun getHealth(): NetworkResult<List<ArrHealth>> =
+        get("health")
 
     /**
      * Helpers

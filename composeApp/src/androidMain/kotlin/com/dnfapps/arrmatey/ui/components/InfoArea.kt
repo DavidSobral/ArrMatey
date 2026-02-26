@@ -30,23 +30,23 @@ import com.dnfapps.arrmatey.arr.api.model.MonitorNewItems
 import com.dnfapps.arrmatey.arr.api.model.Tag
 import com.dnfapps.arrmatey.compose.utils.bytesAsFileSizeString
 import com.dnfapps.arrmatey.entensions.forEachIndexed
+import com.dnfapps.arrmatey.model.InfoItem
 import com.dnfapps.arrmatey.utils.format
 import com.dnfapps.arrmatey.utils.mokoString
+import dev.icerock.moko.resources.StringResource
 import kotlin.time.ExperimentalTime
 
 @Composable
 fun InfoArea(
-    item: ArrMedia,
-    qualityProfiles: List<QualityProfile>,
-    tags: List<Tag>
+    infoItems: List<InfoItem>,
+    title: StringResource = MR.strings.information
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = mokoString(MR.strings.information),
-            fontWeight = FontWeight.Medium,
-            fontSize = 26.sp
+            text = mokoString(title),
+            style = MaterialTheme.typography.headlineSmall
         )
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -55,11 +55,6 @@ fun InfoArea(
             Column (
                 modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)
             ) {
-                val infoItems = when (item) {
-                    is ArrSeries -> seriesInfo(item, qualityProfiles, tags)
-                    is ArrMovie -> movieInfo(item, qualityProfiles, tags)
-                    is Arrtist -> artistInfo(item, qualityProfiles, tags)
-                }
                 infoItems.forEachIndexed { index, (key, value) ->
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -83,100 +78,5 @@ fun InfoArea(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun seriesInfo(
-    series: ArrSeries,
-    qualityProfiles: List<QualityProfile>,
-    tags: List<Tag>
-): Map<String, String> {
-    val qualityProfile = qualityProfiles.firstOrNull { it.id == series.qualityProfileId }
-    val tagsLabel = series.formatTags(tags) ?: mokoString(MR.strings.none)
-
-    val unknown = mokoString(MR.strings.unknown)
-    val monitorLabel = if (series.monitorNewItems == MonitorNewItems.All) {
-        mokoString(MR.strings.monitored)
-    } else { mokoString(MR.strings.unmonitored) }
-
-    val seasonFolderLabel = if (series.seasonFolder) {
-        mokoString(MR.strings.yes)
-    } else { mokoString(MR.strings.no) }
-
-    val diskSize = series.fileSize.bytesAsFileSizeString()
-
-    return mapOf(
-        mokoString(MR.strings.series_type) to series.seriesType.name,
-        mokoString(MR.strings.size_on_disk) to diskSize,
-        mokoString(MR.strings.root_folder) to (series.rootFolderPath ?: unknown),
-        mokoString(MR.strings.path) to (series.path ?: unknown),
-        mokoString(MR.strings.new_seasons) to monitorLabel,
-        mokoString(MR.strings.season_folders) to seasonFolderLabel,
-        mokoString(MR.strings.quality_profile) to (qualityProfile?.name ?: unknown),
-        mokoString(MR.strings.tags) to tagsLabel
-    )
-}
-
-@OptIn(ExperimentalTime::class)
-@Composable
-private fun movieInfo(
-    movie: ArrMovie,
-    qualityProfiles: List<QualityProfile>,
-    tags: List<Tag>
-): Map<String, String> {
-    val qualityProfile = qualityProfiles.firstOrNull { it.id == movie.qualityProfileId }
-    val tagsLabel = movie.formatTags(tags) ?: mokoString(MR.strings.none)
-
-    val unknown = mokoString(MR.strings.unknown)
-
-    val rootFolderPathValue = movie.rootFolderPath.takeUnless { it.isBlank() }
-        ?: mokoString(MR.strings.unknown)
-
-    return buildMap {
-        put(mokoString(MR.strings.minimum_availability), movie.minimumAvailability.name)
-        put(mokoString(MR.strings.root_folder), rootFolderPathValue)
-        put(mokoString(MR.strings.path), (movie.path ?: unknown))
-        movie.inCinemas?.format("MMM d, yyyy")?.let {
-            put(mokoString(MR.strings.in_cinemas), it)
-        }
-        movie.physicalRelease?.format("MMM d, yyyy")?.let {
-            put(mokoString(MR.strings.physical_release), it)
-        }
-        movie.digitalRelease?.format("MMM d, yyyy")?.let {
-            put(mokoString(MR.strings.digital_release), it)
-        }
-        put(mokoString(MR.strings.quality_profile), (qualityProfile?.name ?: unknown))
-        put(mokoString(MR.strings.tags), tagsLabel)
-    }
-
-}
-
-@Composable
-private fun artistInfo(
-    artist: Arrtist,
-    qualityProfiles: List<QualityProfile>,
-    tags: List<Tag>
-): Map<String, String> {
-    val qualityProfile = qualityProfiles.firstOrNull { it.id == artist.qualityProfileId }
-    val tagsLabel = artist.formatTags(tags) ?: mokoString(MR.strings.none)
-
-    val unknown = mokoString(MR.strings.unknown)
-    val monitorLabel = if (artist.monitorNewItems == ArtistMonitorType.All) {
-        mokoString(MR.strings.monitored)
-    } else { mokoString(MR.strings.unmonitored) }
-
-    val rootFolderPathValue = artist.rootFolderPath?.takeUnless { it.isBlank() }
-        ?: mokoString(MR.strings.unknown)
-
-    val diskSize = artist.fileSize.bytesAsFileSizeString()
-
-    return buildMap {
-        put(mokoString(MR.strings.size_on_disk), diskSize)
-        put(mokoString(MR.strings.root_folder), rootFolderPathValue)
-        put(mokoString(MR.strings.path), (artist.path ?: unknown))
-        put(mokoString(MR.strings.new_albums), monitorLabel)
-        put(mokoString(MR.strings.quality_profile), (qualityProfile?.name ?: unknown))
-        put(mokoString(MR.strings.tags), tagsLabel)
     }
 }

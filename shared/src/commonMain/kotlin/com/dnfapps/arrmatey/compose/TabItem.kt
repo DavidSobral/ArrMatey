@@ -1,31 +1,26 @@
 package com.dnfapps.arrmatey.compose
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Movie
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Tv
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.dnfapps.arrmatey.shared.MR
 import dev.icerock.moko.resources.StringResource
 
 enum class TabItem(
     val iosIcon: String,
-    val androidIcon: ImageVector,
     val resource: StringResource,
-    val drawerOnly: Boolean = false
+    val drawerOnly: Boolean = false,
+    val isDisabled: Boolean = false // should only be set for in-progress views
 ) {
-    SHOWS("tv", Icons.Default.Tv, MR.strings.series),
-    MOVIES("movieclapper", Icons.Default.Movie, MR.strings.movies),
-    MUSIC("music.quarternote.3", Icons.Default.MusicNote, MR.strings.music),
-    ACTIVITY("square.and.arrow.down", Icons.Default.Download, MR.strings.activity),
-    CALENDAR("calendar", Icons.Default.CalendarMonth, MR.strings.schedule),
-    SETTINGS("gear", Icons.Default.Settings, MR.strings.settings, drawerOnly = true);
+    SHOWS("tv", MR.strings.series),
+    MOVIES("movieclapper", MR.strings.movies),
+    MUSIC("music.quarternote.3", MR.strings.music),
+    ACTIVITY("square.and.arrow.down", MR.strings.activity),
+    CALENDAR("calendar", MR.strings.schedule),
+    REQUESTS("tray.fill", MR.strings.requests, isDisabled = true),
+
+    SETTINGS("gear", MR.strings.settings, drawerOnly = true);
 
     companion object {
-        val bottomEntries = entries.filter { !it.drawerOnly }
+        val navigationEntries = entries.filter { !it.drawerOnly && !it.isDisabled }
+        val defaultEntries = listOf(SHOWS, MOVIES, MUSIC, ACTIVITY, CALENDAR)
+        val defaultHidden = navigationEntries.filter { !defaultEntries.contains(it) }
     }
 }
