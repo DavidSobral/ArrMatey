@@ -8,9 +8,9 @@ class GetProwlarrIndexersUseCase(
     private val instanceManager: InstanceManager
 ) {
     suspend operator fun invoke(instanceId: Long): NetworkResult<List<ProwlarrIndexer>> {
-        val repository = instanceManager.getRepository(instanceId)
-            ?: return NetworkResult.Error(message = "Instance not found")
-        
+        val repository = instanceManager.getProwlarrRepository(instanceId)
+            ?: return NetworkResult.Error(message = "Prowlarr instance not found")
+
         return repository.prowlarrClient.getIndexers()
     }
 }

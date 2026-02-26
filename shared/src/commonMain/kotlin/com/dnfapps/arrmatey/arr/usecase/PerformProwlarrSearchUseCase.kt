@@ -13,8 +13,8 @@ class PerformProwlarrSearchUseCase(
         categories: List<Int> = emptyList(),
         indexerIds: List<Long> = emptyList()
     ): NetworkResult<List<ProwlarrSearchResult>> {
-        val repository = instanceManager.getRepository(instanceId)
-            ?: return NetworkResult.Error(message = "Instance not found")
+        val repository = instanceManager.getProwlarrRepository(instanceId)
+            ?: return NetworkResult.Error(message = "Prowlarr instance not found")
 
         return repository.prowlarrClient.search(
             query = query,

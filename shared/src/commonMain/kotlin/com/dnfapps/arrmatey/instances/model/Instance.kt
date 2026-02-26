@@ -120,6 +120,7 @@ enum class InstanceType(
         defaultPort = 9696,
         supportsActivityQueue = false,
         apiBase = "api/v1",
+        testEndpoint = "system/status",
         includeTopLevelAutomaticSearchOption = false,
         aspectRatio = AspectRatio.Cover
     )

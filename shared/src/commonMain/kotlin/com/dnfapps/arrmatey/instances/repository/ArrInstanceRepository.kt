@@ -148,11 +148,11 @@ class ArrInstanceRepository(
 
     suspend fun refreshLibrary() {
         _library.value = NetworkResult.Loading
-        _library.value = arrClient.getLibrary()
+        _library.value = client.getLibrary()
     }
 
     suspend fun getMediaDetails(id: Long): NetworkResult<ArrMedia> {
-        return arrClient.getDetail(id)
+        return client.getDetail(id)
             .onSuccess { media ->
                 val currentCache = _mediaDetailsCache.value.toMutableMap()
                 currentCache[id] = media
@@ -161,17 +161,17 @@ class ArrInstanceRepository(
     }
 
     suspend fun refreshQualityProfiles() {
-        arrClient.getQualityProfiles()
+        client.getQualityProfiles()
             .onSuccess { _qualityProfiles.value = it }
     }
 
     suspend fun refreshRootFolders() {
-        arrClient.getRootFolders()
+        client.getRootFolders()
             .onSuccess { _rootFolders.value = it }
     }
 
     suspend fun refreshTags() {
-        arrClient.getTags()
+        client.getTags()
             .onSuccess { _tags.value = it }
     }
 
@@ -208,7 +208,7 @@ class ArrInstanceRepository(
     }
 
     suspend fun refreshActivityTasks(page: Int = 1, pageSize: Int = 100) {
-        arrClient.fetchActivityTasks(page, pageSize)
+        client.fetchActivityTasks(page, pageSize)
             .onSuccess { queue ->
                 _activityTasks.value = queue.records
             }
@@ -222,7 +222,7 @@ class ArrInstanceRepository(
 
         _lookupResults.value = NetworkResult.Loading
 
-        arrClient.lookup(query)
+        client.lookup(query)
             .onSuccess { results ->
                 _lookupResults.value = NetworkResult.Success(results)
             }
@@ -238,7 +238,7 @@ class ArrInstanceRepository(
     suspend fun addItem(item: ArrMedia) {
         _addItemStatus.value = OperationStatus.InProgress
 
-        arrClient.addItemToLibrary(item)
+        client.addItemToLibrary(item)
             .onSuccess { addedItem ->
                 _addItemStatus.value = OperationStatus.Success("Item added successfully")
                 addedItem.id?.let {
@@ -261,7 +261,7 @@ class ArrInstanceRepository(
     suspend fun getReleases(params: ReleaseParams) {
         _releases.value = NetworkResult.Loading
 
-        arrClient.getReleases(params)
+        client.getReleases(params)
             .onSuccess { releases ->
                 _releases.value = NetworkResult.Success(releases)
             }
@@ -275,7 +275,7 @@ class ArrInstanceRepository(
     ): NetworkResult<Any> {
         _downloadStatus.value = DownloadState.Loading(payload.guid)
 
-        return arrClient.downloadRelease(payload)
+        return client.downloadRelease(payload)
             .onSuccess {
                 _downloadStatus.value = DownloadState.Success
             }
@@ -293,13 +293,13 @@ class ArrInstanceRepository(
         addToBlocklist: Boolean,
         skipRedownload: Boolean
     ): NetworkResult<Unit> {
-        return arrClient.deleteActivityTask(releaseId, removeFromClient, addToBlocklist, skipRedownload)
+        return client.deleteActivityTask(releaseId, removeFromClient, addToBlocklist, skipRedownload)
     }
 
     suspend fun executeAutomaticSearch(itemId: Long) {
         _searchStatus.value = OperationStatus.InProgress
 
-        arrClient.performAutomaticSearch(itemId)
+        client.performAutomaticSearch(itemId)
             .onSuccess {
                 _searchStatus.value = OperationStatus.Success("Search initiated")
             }
@@ -312,13 +312,13 @@ class ArrInstanceRepository(
     }
 
     suspend fun executeCommand(payload: CommandPayload): NetworkResult<Any> {
-        return arrClient.command(payload)
+        return client.command(payload)
     }
 
     suspend fun getItemHistory(itemId: Long, page: Int = 1, pageSize: Int = 100): NetworkResult<List<HistoryItem>> {
         _historyStatus.value = OperationStatus.InProgress
 
-        return arrClient.getItemHistory(itemId, page, pageSize)
+        return client.getItemHistory(itemId, page, pageSize)
             .onSuccess { history ->
                 val currentCache = _historyCache.value.toMutableMap()
                 currentCache[itemId] = history
@@ -335,7 +335,7 @@ class ArrInstanceRepository(
 
     suspend fun editMediaItem(item: ArrMedia, moveFiles: Boolean): NetworkResult<Unit> {
         _editItemStatus.value = OperationStatus.InProgress
-        return arrClient.edit(item, moveFiles)
+        return client.edit(item, moveFiles)
             .onSuccess {
                 val id = item.id ?: return@onSuccess
                 val currentCache = _mediaDetailsCache.value.toMutableMap()
@@ -358,7 +358,7 @@ class ArrInstanceRepository(
     suspend fun updateMediaItem(item: ArrMedia): NetworkResult<ArrMedia> {
         _monitorStatus.value = OperationStatus.InProgress
 
-        return arrClient.update(item)
+        return client.update(item)
             .onSuccess { updateItem ->
                 _monitorStatus.value = OperationStatus.Success("Item updated successfully")
 
@@ -381,7 +381,7 @@ class ArrInstanceRepository(
         deleteFiles: Boolean,
         addImportExclusion: Boolean
     ): NetworkResult<Unit> =
-        arrClient.delete(id, deleteFiles, addImportExclusion)
+        client.delete(id, deleteFiles, addImportExclusion)
             .onSuccess {
                 val currentCache = _mediaDetailsCache.value.toMutableMap()
                 currentCache.remove(id)
@@ -403,7 +403,7 @@ class ArrInstanceRepository(
     suspend fun setMonitorState(id: Long, status: Boolean): NetworkResult<MonitoredResponse?> {
         _monitorStatus.value = OperationStatus.InProgress
 
-        val result = arrClient.setMonitorStatus(id, status)
+        val result = client.setMonitorStatus(id, status)
 
         return result
             .map { it.firstOrNull() }
@@ -439,7 +439,7 @@ class ArrInstanceRepository(
 
         val updatedSeries = currentSeries.copy(seasons = updatedSeason)
 
-        return arrClient.update(updatedSeries)
+        return client.update(updatedSeries)
             .onSuccess { resultSeries ->
                 _monitorStatus.value = OperationStatus.Success("Season monitor toggled")
 
@@ -582,7 +582,7 @@ class ArrInstanceRepository(
     fun observeMediaDetails(id: Long): Flow<NetworkResult<ArrMedia>> = flow {
         emit(NetworkResult.Loading)
 
-        val result = arrClient.getDetail(id)
+        val result = client.getDetail(id)
         when (result) {
             is NetworkResult.Success -> {
                 val currentCache = _mediaDetailsCache.value.toMutableMap()
