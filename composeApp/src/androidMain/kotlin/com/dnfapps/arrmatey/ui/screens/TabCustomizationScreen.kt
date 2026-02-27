@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -57,6 +58,7 @@ import com.dnfapps.arrmatey.ui.components.navigation.BackButton
 import com.dnfapps.arrmatey.utils.MokoStrings
 import com.dnfapps.arrmatey.utils.mokoString
 import dev.icerock.moko.resources.StringResource
+import dev.icerock.moko.resources.compose.painterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -71,6 +73,7 @@ fun TabCustomizationScreen(
     navigation: Navigation<SettingsScreen> = navigationManager.settings()
 ) {
     val preferences by preferenceStore.tabPreferences.collectAsStateWithLifecycle(initialValue = null)
+    val useServiceNavLogos by preferenceStore.useServiceNavLogos.collectAsStateWithLifecycle(false)
 
     var resetTrigger by remember { mutableIntStateOf(0) }
 
@@ -90,6 +93,7 @@ fun TabCustomizationScreen(
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             preferences?.let { preferences ->
                 TabCustomizationContent(
+                    useServiceNavLogos,
                     preferences,
                     updatePreferences =  {
                         preferenceStore.updateTabPreferences(it)
@@ -103,6 +107,7 @@ fun TabCustomizationScreen(
 
 @Composable
 fun TabCustomizationContent(
+    useServiceNavLogos: Boolean,
     preferences: TabPreferences,
     updatePreferences: (TabPreferences) -> Unit,
     resetTrigger: Int
@@ -202,6 +207,7 @@ fun TabCustomizationContent(
                             TabItemCard(
                                 modifier = Modifier.draggableHandle(enabled = dividerRow > 1 || isBelowDivider),
                                 tab = row.item,
+                                useServiceNavLogos = useServiceNavLogos,
                                 isDragging = isDragging,
                                 elevation = elevation
                             )
@@ -217,6 +223,7 @@ fun TabCustomizationContent(
 @Composable
 fun TabItemCard(
     tab: TabItem,
+    useServiceNavLogos: Boolean,
     isDragging: Boolean,
     elevation: Dp,
     modifier: Modifier = Modifier
@@ -245,10 +252,19 @@ fun TabItemCard(
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Icon(
-                    imageVector = tab.androidIcon,
-                    contentDescription = null
-                )
+                val logo = tab.associatedType?.tabIcon
+                if (useServiceNavLogos && logo != null) {
+                    Icon(
+                        painter = painterResource(logo),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = tab.androidIcon,
+                        contentDescription = null
+                    )
+                }
                 Text(
                     text = mokoString(tab.resource),
                     style = MaterialTheme.typography.bodyLarge
