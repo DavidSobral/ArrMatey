@@ -13,6 +13,7 @@ enum class TabItem(
     MOVIES("movieclapper", MR.strings.movies),
     MUSIC("music.quarternote.3", MR.strings.music),
     ACTIVITY("square.and.arrow.down", MR.strings.activity),
+    DOWNLOADS("arrow.down.circle", MR.strings.downloads),
     CALENDAR("calendar", MR.strings.schedule),
     REQUESTS("tray.fill", MR.strings.requests, isDisabled = true),
 

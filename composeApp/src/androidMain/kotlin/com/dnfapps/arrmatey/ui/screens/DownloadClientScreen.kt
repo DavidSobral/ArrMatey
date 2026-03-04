@@ -105,7 +105,7 @@ fun DownloadClientScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "No download clients configured")
+                    Text(text = mokoString(MR.strings.no_download_clients))
                 }
             } else {
                 LazyColumn(
@@ -145,7 +145,7 @@ fun DownloadClientScreen(
                     Text(mokoString(MR.strings.confirm))
                 },
                 text = {
-                    Text("Delete download client ${downloadClient.label}?")
+                    Text(mokoString(MR.strings.confirm_delete_instance, downloadClient.label))
                 }
             )
         }
@@ -203,12 +203,12 @@ private fun DownloadClientItem(
                 when (connectionState) {
                     is DownloadClientConnectionState.Initial -> {
                         Icon(Icons.Default.Sync, contentDescription = null)
-                        Text("Not tested")
+                        Text(mokoString(MR.strings.not_tested))
                     }
 
                     is DownloadClientConnectionState.Loading -> {
                         CircularProgressIndicator()
-                        Text("Testing connection")
+                        Text(mokoString(MR.strings.testing_connection))
                     }
 
                     is DownloadClientConnectionState.Success -> {
@@ -217,7 +217,7 @@ private fun DownloadClientItem(
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
-                        Text("Connected")
+                        Text(mokoString(MR.strings.connected))
                     }
 
                     is DownloadClientConnectionState.Error -> {
@@ -238,7 +238,7 @@ private fun DownloadClientItem(
                 onClick = onTestConnection,
                 enabled = connectionState !is DownloadClientConnectionState.Loading
             ) {
-                Text("Test connection")
+                Text(mokoString(MR.strings.test_connection))
             }
         }
     }

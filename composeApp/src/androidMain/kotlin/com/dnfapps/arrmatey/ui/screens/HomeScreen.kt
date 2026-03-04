@@ -59,6 +59,7 @@ import com.dnfapps.arrmatey.ui.components.navigation.DoubleBackToExit
 import com.dnfapps.arrmatey.ui.tabs.ActivityTab
 import com.dnfapps.arrmatey.ui.tabs.ArrTab
 import com.dnfapps.arrmatey.ui.tabs.CalendarTab
+import com.dnfapps.arrmatey.ui.tabs.DownloadsTab
 import com.dnfapps.arrmatey.ui.tabs.RequestsTab
 import com.dnfapps.arrmatey.ui.tabs.SettingsTabNavHost
 import com.dnfapps.arrmatey.utils.mokoString
@@ -248,6 +249,7 @@ private fun TabItemContent(tab: TabItem) {
         TabItem.MOVIES -> ArrTab(InstanceType.Radarr)
         TabItem.MUSIC -> ArrTab(InstanceType.Lidarr)
         TabItem.ACTIVITY -> ActivityTab()
+        TabItem.DOWNLOADS -> DownloadsTab()
         TabItem.CALENDAR -> CalendarTab()
         TabItem.REQUESTS -> RequestsTab()
 
