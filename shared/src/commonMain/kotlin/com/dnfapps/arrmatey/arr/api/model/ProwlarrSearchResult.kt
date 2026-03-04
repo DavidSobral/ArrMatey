@@ -1,5 +1,6 @@
 package com.dnfapps.arrmatey.arr.api.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -16,7 +17,7 @@ data class ProwlarrSearchResult(
     val downloadUrl: String? = null,
     val infoUrl: String? = null,
     val magnetUrl: String? = null,
-    val protocol: String? = null,
+    val protocol: ReleaseProtocol? = null,
     val seeders: Int? = null,
     val leechers: Int? = null,
     val grabs: Int? = null,

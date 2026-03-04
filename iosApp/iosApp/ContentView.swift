@@ -162,6 +162,9 @@ struct LauncherTabView: View {
                     .environment(\.navigationContext, .launcher)
             case .requests:
                 EmptyView()
+            case .prowlarr:
+                ProwlarrTab()
+                    .environment(\.navigationContext, .launcher)
             case .settings:
                 SettingsScreen()
             }
