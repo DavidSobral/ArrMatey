@@ -10,6 +10,8 @@ import com.dnfapps.arrmatey.downloadclient.usecase.PauseDownloadUseCase
 import com.dnfapps.arrmatey.downloadclient.usecase.ResumeDownloadUseCase
 import com.dnfapps.arrmatey.downloadclient.usecase.TestDownloadClientConnectionUseCase
 import com.dnfapps.arrmatey.downloadclient.usecase.UpdateDownloadClientUseCase
+import com.dnfapps.arrmatey.downloadclient.viewmodel.DownloadClientSettingsViewModel
+import com.dnfapps.arrmatey.downloadclient.viewmodel.DownloadQueueViewModel
 import org.koin.dsl.module
 
 val downloadClientModule = module {
@@ -26,4 +28,7 @@ val downloadClientModule = module {
     factory { CreateDownloadClientUseCase(get()) }
     factory { DeleteDownloadClientUseCase(get()) }
     factory { UpdateDownloadClientUseCase(get()) }
+
+    factory { DownloadQueueViewModel(get(), get(), get(), get()) }
+    factory { DownloadClientSettingsViewModel(get(), get(), get()) }
 }
