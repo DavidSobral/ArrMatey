@@ -46,6 +46,7 @@ import com.dnfapps.arrmatey.downloadclient.state.DownloadClientCommandState
 import com.dnfapps.arrmatey.downloadclient.state.DownloadQueueState
 import com.dnfapps.arrmatey.downloadclient.viewmodel.DownloadQueueViewModel
 import com.dnfapps.arrmatey.shared.MR
+import com.dnfapps.arrmatey.ui.components.navigation.NavigationDrawerButton
 import com.dnfapps.arrmatey.utils.mokoString
 import org.koin.compose.koinInject
 
@@ -72,7 +73,10 @@ fun DownloadQueueScreen(
                 title = {
                     val count = (queueState as? DownloadQueueState.Success)?.items?.size ?: 0
                     val suffix = if (count > 0) " ($count)" else ""
-                    Text(text = mokoString(MR.strings.activity) + suffix)
+                    Text(text = mokoString(MR.strings.downloads) + suffix)
+                },
+                navigationIcon = {
+                    NavigationDrawerButton()
                 }
             )
         },

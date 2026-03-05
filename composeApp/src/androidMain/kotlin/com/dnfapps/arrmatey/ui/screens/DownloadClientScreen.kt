@@ -43,14 +43,20 @@ import com.dnfapps.arrmatey.downloadclient.model.DownloadClient
 import com.dnfapps.arrmatey.downloadclient.state.DownloadClientConnectionState
 import com.dnfapps.arrmatey.downloadclient.state.DownloadClientMutationState
 import com.dnfapps.arrmatey.downloadclient.viewmodel.DownloadClientSettingsViewModel
+import com.dnfapps.arrmatey.navigation.Navigation
+import com.dnfapps.arrmatey.navigation.NavigationManager
+import com.dnfapps.arrmatey.navigation.SettingsScreen
 import com.dnfapps.arrmatey.shared.MR
+import com.dnfapps.arrmatey.ui.components.navigation.BackButton
 import com.dnfapps.arrmatey.utils.mokoString
 import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadClientScreen(
-    viewModel: DownloadClientSettingsViewModel = koinInject()
+    viewModel: DownloadClientSettingsViewModel = koinInject(),
+    navigationManager: NavigationManager = koinInject(),
+    navigation: Navigation<SettingsScreen> = navigationManager.settings()
 ) {
     val downloadClients by viewModel.downloadClients.collectAsStateWithLifecycle()
     val connectionStates by viewModel.connectionStates.collectAsStateWithLifecycle()
@@ -71,6 +77,9 @@ fun DownloadClientScreen(
                 title = {
                     val suffix = if (downloadClients.isNotEmpty()) " (${downloadClients.size})" else ""
                     Text(text = mokoString(MR.strings.download_client) + suffix)
+                },
+                navigationIcon = {
+                    BackButton(navigation)
                 }
             )
         },
