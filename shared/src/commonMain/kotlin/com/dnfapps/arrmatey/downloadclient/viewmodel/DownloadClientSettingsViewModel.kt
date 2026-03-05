@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.dnfapps.arrmatey.downloadclient.model.DownloadClient
 import com.dnfapps.arrmatey.downloadclient.state.DownloadClientConnectionState
 import com.dnfapps.arrmatey.downloadclient.state.DownloadClientMutationState
+import com.dnfapps.arrmatey.downloadclient.usecase.CreateDownloadClientUseCase
 import com.dnfapps.arrmatey.downloadclient.usecase.DeleteDownloadClientUseCase
 import com.dnfapps.arrmatey.downloadclient.usecase.ObserveDownloadClientsUseCase
 import com.dnfapps.arrmatey.downloadclient.usecase.TestDownloadClientConnectionUseCase
+import com.dnfapps.arrmatey.downloadclient.usecase.UpdateDownloadClientUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +20,9 @@ import kotlinx.coroutines.launch
 class DownloadClientSettingsViewModel(
     observeDownloadClientsUseCase: ObserveDownloadClientsUseCase,
     private val testDownloadClientConnectionUseCase: TestDownloadClientConnectionUseCase,
-    private val deleteDownloadClientUseCase: DeleteDownloadClientUseCase
+    private val deleteDownloadClientUseCase: DeleteDownloadClientUseCase,
+    private val createDownloadClientUseCase: CreateDownloadClientUseCase,
+    private val updateDownloadClientUseCase: UpdateDownloadClientUseCase
 ): ViewModel() {
 
     val downloadClients = observeDownloadClientsUseCase()
@@ -55,6 +59,18 @@ class DownloadClientSettingsViewModel(
                     error.message ?: "Failed to delete"
                 )
             }
+        }
+    }
+
+    fun createClient(downloadClient: DownloadClient) {
+        viewModelScope.launch {
+            _mutationState.value = createDownloadClientUseCase(downloadClient)
+        }
+    }
+
+    fun updateClient(downloadClient: DownloadClient) {
+        viewModelScope.launch {
+            _mutationState.value = updateDownloadClientUseCase(downloadClient)
         }
     }
 

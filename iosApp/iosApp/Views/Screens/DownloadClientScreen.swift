@@ -10,6 +10,8 @@ struct DownloadClientScreen: View {
 
     @ObservedObject private var viewModel = DownloadClientSettingsViewModelS()
     @State private var deleteTarget: DownloadClient? = nil
+    @State private var showAddSheet = false
+    @State private var editTarget: DownloadClient? = nil
 
     var body: some View {
         Form {
@@ -25,7 +27,33 @@ struct DownloadClientScreen: View {
                             onTest: { viewModel.testConnection(id: client.id) },
                             onDelete: { deleteTarget = client }
                         )
+                        .contentShape(Rectangle())
+                        .onTapGesture { editTarget = client }
                     }
+                }
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showAddSheet = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $showAddSheet) {
+            NavigationStack {
+                AddEditDownloadClientScreen(viewModel: viewModel)
+            }
+        }
+        .sheet(isPresented: Binding(
+            get: { editTarget != nil },
+            set: { if !$0 { editTarget = nil } }
+        )) {
+            if let client = editTarget {
+                NavigationStack {
+                    AddEditDownloadClientScreen(viewModel: viewModel, client: client)
                 }
             }
         }

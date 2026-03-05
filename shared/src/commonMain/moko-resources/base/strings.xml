@@ -354,6 +354,17 @@
     <string name="current_network">Currently connected to: %s</string>
     <string name="test_local_connection">Test Local Connection</string>
 
+    <!-- Download Client Form -->
+    <string name="add_download_client">Add Download Client</string>
+    <string name="edit_download_client">Edit Download Client</string>
+    <string name="client_label">Label</string>
+    <string name="client_type">Type</string>
+    <string name="client_url">URL</string>
+    <string name="client_username">Username</string>
+    <string name="client_password">Password</string>
+    <string name="client_api_key">API Key</string>
+    <string name="client_enabled">Enabled</string>
+
     <!-- Crash Reporting -->
     <string name="crash_report_subject">ArrMatey Crash Report</string>
     <string name="share_crash_log">Share Crash Log</string>

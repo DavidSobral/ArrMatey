@@ -37,6 +37,14 @@ class DownloadClientSettingsViewModelS: ObservableObject {
         viewModel.deleteClient(downloadClient: client)
     }
 
+    func createClient(_ client: DownloadClient) {
+        viewModel.createClient(downloadClient: client)
+    }
+
+    func updateClient(_ client: DownloadClient) {
+        viewModel.updateClient(downloadClient: client)
+    }
+
     func resetMutationState() {
         viewModel.resetMutationState()
     }

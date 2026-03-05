@@ -13,6 +13,7 @@ import com.dnfapps.arrmatey.navigation.SettingsScreen
 import com.dnfapps.arrmatey.ui.screens.AddInstanceScreen
 import com.dnfapps.arrmatey.ui.screens.ArrInstanceDashboard
 import com.dnfapps.arrmatey.ui.screens.DevSettingsScreen
+import com.dnfapps.arrmatey.ui.screens.AddEditDownloadClientScreen
 import com.dnfapps.arrmatey.ui.screens.DownloadClientScreen
 import com.dnfapps.arrmatey.ui.screens.EditInstanceScreen
 import com.dnfapps.arrmatey.ui.screens.SettingsScreen
@@ -43,6 +44,8 @@ fun SettingsTabNavHost(
             entry<SettingsScreen.TabPreferences> { TabCustomizationScreen() }
             entry<SettingsScreen.ArrDashboard> { ArrInstanceDashboard(it.id) }
             entry<SettingsScreen.DownloadClients> { DownloadClientScreen() }
+            entry<SettingsScreen.AddDownloadClient> { AddEditDownloadClientScreen() }
+            entry<SettingsScreen.EditDownloadClient> { AddEditDownloadClientScreen(clientId = it.id) }
         }
     )
 }

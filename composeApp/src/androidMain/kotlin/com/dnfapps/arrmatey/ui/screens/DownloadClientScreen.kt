@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -21,6 +22,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -83,6 +85,16 @@ fun DownloadClientScreen(
                 }
             )
         },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navigation.navigateTo(SettingsScreen.AddDownloadClient) }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = mokoString(MR.strings.add_download_client)
+                )
+            }
+        },
         contentWindowInsets = WindowInsets.statusBars
     ) { paddingValues ->
         Column(
@@ -126,7 +138,8 @@ fun DownloadClientScreen(
                             downloadClient = downloadClient,
                             connectionState = connectionStates[downloadClient.id] ?: DownloadClientConnectionState.Initial,
                             onTestConnection = { viewModel.testConnection(downloadClient.id) },
-                            onDelete = { deleteTarget = downloadClient }
+                            onDelete = { deleteTarget = downloadClient },
+                            onEdit = { navigation.navigateTo(SettingsScreen.EditDownloadClient(downloadClient.id)) }
                         )
                     }
                 }
@@ -166,10 +179,12 @@ private fun DownloadClientItem(
     downloadClient: DownloadClient,
     connectionState: DownloadClientConnectionState,
     onTestConnection: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onEdit
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

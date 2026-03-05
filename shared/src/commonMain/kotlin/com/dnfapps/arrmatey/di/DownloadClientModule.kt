@@ -32,5 +32,5 @@ val downloadClientModule = module {
     factory { UpdateDownloadClientUseCase(get()) }
 
     factory { DownloadQueueViewModel(get(), get(), get(), get()) }
-    factory { DownloadClientSettingsViewModel(get(), get(), get()) }
+    factory { DownloadClientSettingsViewModel(get(), get(), get(), get(), get()) }
 }
