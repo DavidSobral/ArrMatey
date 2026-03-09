@@ -17,6 +17,7 @@ enum class TabItem(
     ACTIVITY("square.and.arrow.down", MR.strings.activity),
     CALENDAR("calendar", MR.strings.schedule),
     REQUESTS("tray.fill", MR.strings.requests, isDisabled = true),
+    PROWLARR("magnifyingglass.circle", MR.strings.prowlarr, associatedType = InstanceType.Prowlarr),
 
     SETTINGS("gear", MR.strings.settings, drawerOnly = true);
 

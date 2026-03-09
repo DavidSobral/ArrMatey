@@ -47,13 +47,19 @@ import com.dnfapps.arrmatey.arr.usecase.DeleteMediaUseCase
 import com.dnfapps.arrmatey.arr.usecase.DeleteQueueItemUseCase
 import com.dnfapps.arrmatey.arr.usecase.DeleteSeasonFilesUseCase
 import com.dnfapps.arrmatey.arr.usecase.GetCalendarUseCase
+import com.dnfapps.arrmatey.arr.usecase.GrabProwlarrReleaseUseCase
+import com.dnfapps.arrmatey.arr.usecase.GetProwlarrIndexersUseCase
+import com.dnfapps.arrmatey.arr.usecase.PerformProwlarrSearchUseCase
 import com.dnfapps.arrmatey.arr.usecase.GetEpisodeHistoryUseCase
+import com.dnfapps.arrmatey.arr.usecase.GetProwlarrIndexersStatusUseCase
 import com.dnfapps.arrmatey.arr.usecase.PerformAutomaticSearchUseCase
 import com.dnfapps.arrmatey.arr.usecase.PerformRefreshUseCase
 import com.dnfapps.arrmatey.arr.usecase.ToggleMonitorUseCase
 import com.dnfapps.arrmatey.arr.usecase.UpdateMediaUseCase
 import com.dnfapps.arrmatey.arr.viewmodel.ArrInstanceDashboardViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.CalendarViewModel
+import com.dnfapps.arrmatey.arr.viewmodel.ProwlarrIndexersViewModel
+import com.dnfapps.arrmatey.arr.viewmodel.ProwlarrSearchViewModel
 import com.dnfapps.arrmatey.compose.utils.ReleaseFilterBy
 import com.dnfapps.arrmatey.database.ArrMateyDatabase
 import com.dnfapps.arrmatey.database.InstanceRepository
@@ -62,6 +68,7 @@ import com.dnfapps.arrmatey.datastore.DataStoreFactory
 import com.dnfapps.arrmatey.datastore.InstancePreferenceStoreRepository
 import com.dnfapps.arrmatey.datastore.PreferencesStore
 import com.dnfapps.arrmatey.instances.model.InstanceType
+import com.dnfapps.arrmatey.instances.usecase.GetProwlarrInstanceRepositoryUseCase
 import com.dnfapps.arrmatey.instances.usecase.GetSeerrInstanceRepositoryUseCase
 import com.dnfapps.arrmatey.instances.usecase.TestInstanceConnectionUseCase
 import com.dnfapps.arrmatey.instances.usecase.UpdateCalendarFilterPreferenceUseCase
@@ -152,10 +159,15 @@ val useCaseModule = module {
     factory { PerformRefreshUseCase() }
     factory { GetCalendarUseCase(get()) }
     factory { DeleteAlbumFilesUseCase() }
+    factory { GetProwlarrIndexersUseCase(get()) }
+    factory { PerformProwlarrSearchUseCase(get()) }
+    factory { GrabProwlarrReleaseUseCase(get()) }
     factory { UpdateCalendarFilterPreferenceUseCase(get()) }
     factory { GetSeerrInstanceRepositoryUseCase(get()) }
     factory { GetCurrentSeerrUserUseCase() }
     factory { GetRequestsUseCase() }
+    factory { GetProwlarrIndexersStatusUseCase(get()) }
+    factory { GetProwlarrInstanceRepositoryUseCase(get()) }
 }
 
 val viewModelModule = module {
@@ -193,6 +205,8 @@ val viewModelModule = module {
         ArrInstanceDashboardViewModel(instanceId, get())
     }
     factory { CalendarViewModel(get(), get(), get(), get()) }
+    factory { ProwlarrIndexersViewModel(get(), get(), get()) }
+    factory { ProwlarrSearchViewModel(get(), get(), get()) }
     factory { RequestsViewModel(get(), get(), get()) }
 }
 
