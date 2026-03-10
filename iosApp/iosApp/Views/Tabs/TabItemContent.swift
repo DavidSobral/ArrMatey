@@ -22,6 +22,7 @@ struct TabItemContent: View {
             case .downloads: DownloadsTab()
             case .calendar: CalendarTab()
             case .requests: EmptyView()
+            case .prowlarr: ProwlarrTab()
             case .settings: SettingsScreen()
             }
         }

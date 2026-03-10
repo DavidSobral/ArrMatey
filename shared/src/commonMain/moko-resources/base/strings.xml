@@ -12,6 +12,7 @@
     <string name="settings">Settings</string>
     <string name="movies">Movies</string>
     <string name="music">Music</string>
+    <string name="indexers">Indexers</string>
     <string name="home">Home</string>
     <string name="requests">Requests</string>
 
@@ -203,6 +204,11 @@
     <string name="feature_request">Feature request</string>
     <string name="service_icons_title">Use service icons</string>
     <string name="service_icons_description">Display service logos as navigation icons for supported services</string>
+    <string name="status">Status</string>
+    <string name="name">Name</string>
+    <string name="sync_profile">Sync profile</string>
+    <string name="priority">Priority</string>
+    <string name="privacy">Privacy</string>
 
     <!-- History Event Type -->
     <string name="grabbed">Grabbed</string>
@@ -238,11 +244,18 @@
     <string name="error_network_title">Network Error</string>
     <string name="error_generic_title">Something went wrong</string>
 
-
     <!-- Instances -->
     <string name="sonarr_description">Sonarr is a PVR for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new episodes of your favorite shows and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.</string>
     <string name="radarr_description">Radarr is a movie collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new movies and will interface with clients and indexers to grab, sort, and rename them. It can also be configured to automatically upgrade the quality of existing files in the library when a better quality format becomes available</string>
     <string name="lidarr_description">Lidarr is a music collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new tracks from your favorite artists and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.</string>
+    <string name="prowlarr_description">Prowlarr is an indexer manager/proxy built on the popular *arr .net/reactjs base stack to integrate with your various PVR apps. Prowlarr supports management of both Torrent Trackers and Usenet Indexers.</string>
+    <string name="prowlarr">Prowlarr</string>
+    <string name="no_indexers_configured">No indexers configured</string>
+    <string name="loading_indexers">Loading indexers...</string>
+    <string name="prowlarr_search_hint">Search for releases across your indexers</string>
+    <string name="search_releases_placeholder">Search for releases...</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
     <string name="seerr_description">Seerr is a free and open source software application for managing requests for your media library. It integrates with the media server of your choice: Jellyfin, Plex, and Emby. In addition, it integrates with your existing services, such as Sonarr, Radarr.</string>
     <string name="qbitt_description">qBittorrent is a bittorrent client programmed in C++ / Qt that uses libtorrent (sometimes called libtorrent-rasterbar) by Arvid Norberg. It aims to be a good alternative to all other bittorrent clients out there. qBittorrent is fast, stable and provides unicode support as well as many features.</string>
     <string name="sabnzbd_description">SABnzbd is an Open Source Binary Newsreader written in Python. It's totally free, easy to use, and works practically everywhere. SABnzbd makes Usenet as simple and streamlined as possible by automating everything we can. All you have to do is add an .nzb. SABnzbd takes over from there, where it will be automatically downloaded, verified, repaired, extracted and filed away with zero human interaction. SABnzbd offers an easy setup wizard and has self-analysis tools to verify your setup.</string>
@@ -398,5 +411,10 @@
     <string name="download_speed">Download Speed</string>
     <string name="upload_speed">Upload Speed</string>
     <string name="eta">ETA</string>
+
+    <!-- Indexer Errors -->
+    <string name="disabled_until">Disabled until</string>
+    <string name="most_recent_failure">Most recent failure</string>
+    <string name="initial_failure">Initial failure</string>
 
 </resources>

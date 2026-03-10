@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.ManageSearch
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Schedule
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.dnfapps.arrmatey.arr.state.ContentFilter
 import com.dnfapps.arrmatey.compose.TabItem
@@ -47,6 +49,7 @@ val TabItem.androidIcon: ImageVector
         TabItem.DOWNLOADS -> Icons.Default.CloudDownload
         TabItem.CALENDAR -> Icons.Default.CalendarMonth
         TabItem.REQUESTS -> Icons.Default.Inbox
+        TabItem.PROWLARR -> Icons.Default.ManageSearch
         TabItem.SETTINGS -> Icons.Default.Settings
     }
 
@@ -67,6 +70,10 @@ val SortBy.androidIcon: ImageVector
         SortBy.DownloadSpeed -> Icons.Default.FileDownload
         SortBy.UploadSpeed -> Icons.Default.FileUpload
         SortBy.Eta -> Icons.Default.Schedule
+        SortBy.Name -> Icons.Default.SortByAlpha
+        SortBy.Priority -> Icons.Default.Star
+        SortBy.Protocol -> Icons.Default.Download
+        SortBy.Privacy -> Icons.Default.Visibility
     }
 
 val SortOrder.androidIcon: ImageVector
