@@ -23,7 +23,14 @@ enum class SortBy(
     PreviousAiring("clock.arrow.trianglehead.counterclockwise.rotate.90", MR.strings.previous_airing),
 
     // Lookup
-    Relevance("star", MR.strings.relevance);
+    Relevance("star", MR.strings.relevance),
+
+    // Download Client
+    Size("opticaldiscdrive.fill", MR.strings.size),
+    Progress("progress.indicator", MR.strings.progress),
+    DownloadSpeed("arrow.down.to.line", MR.strings.download_speed),
+    UploadSpeed("arrow.up", MR.strings.upload_speed),
+    Eta("clock", MR.strings.eta);
 
     companion object {
 
@@ -47,6 +54,8 @@ enum class SortBy(
             }
 
         fun lookupEntries() = listOf(Relevance, Year, Rating)
+
+        fun downloadClientEntries() = listOf(Title, Added, Size, Progress, DownloadSpeed, UploadSpeed, Eta)
     }
 }
 

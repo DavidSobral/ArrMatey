@@ -8,6 +8,9 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Downloading
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Inbox
@@ -59,6 +62,11 @@ val SortBy.androidIcon: ImageVector
         SortBy.NextAiring -> Icons.Default.Schedule
         SortBy.PreviousAiring -> Icons.Default.History
         SortBy.Relevance -> Icons.Default.Star
+        SortBy.Size -> Hard_drive
+        SortBy.Progress -> Icons.Default.Downloading
+        SortBy.DownloadSpeed -> Icons.Default.FileDownload
+        SortBy.UploadSpeed -> Icons.Default.FileUpload
+        SortBy.Eta -> Icons.Default.Schedule
     }
 
 val SortOrder.androidIcon: ImageVector

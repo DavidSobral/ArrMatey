@@ -3,6 +3,7 @@ package com.dnfapps.arrmatey.downloadclient.api
 import com.dnfapps.arrmatey.client.NetworkResult
 import com.dnfapps.arrmatey.client.safeGet
 import com.dnfapps.arrmatey.client.safePost
+import com.dnfapps.arrmatey.compose.utils.toSeconds
 import com.dnfapps.arrmatey.downloadclient.api.model.SABnzbdHistoryResponse
 import com.dnfapps.arrmatey.downloadclient.api.model.SABnzbdQueueResponse
 import com.dnfapps.arrmatey.downloadclient.api.model.SABnzbdStatusResponse
@@ -47,13 +48,15 @@ class SABnzbdClient(
                     }
 
                     DownloadItem(
+                        client = downloadClient,
                         id = slot.nzoId,
                         name = slot.filename,
                         size = totalBytes,
                         progress = progress,
                         downloadSpeed = 0,
                         uploadSpeed = 0,
-                        eta = slot.timeLeft,
+                        eta = slot.timeLeft.toSeconds(),
+                        etaString = slot.timeLeft,
                         status = slot.status.toDownloadStatus(),
                         category = slot.category,
                         addedOn = slot.added
@@ -63,7 +66,6 @@ class SABnzbdClient(
             }
             is NetworkResult.Error -> queueResult
             is NetworkResult.Loading -> queueResult
-            else -> NetworkResult.Error(message = "Unexpected queue state")
         }
     }
 
@@ -108,6 +110,7 @@ class SABnzbdClient(
                 val speedKb = queueResult.data.queue.kbPerSec.toDoubleOrNull() ?: 0.0
                 NetworkResult.Success(
                     DownloadTransferInfo(
+                        client = downloadClient,
                         downloadSpeed = (speedKb * 1024).toLong(),
                         uploadSpeed = 0
                     )
@@ -115,7 +118,6 @@ class SABnzbdClient(
             }
             is NetworkResult.Error -> queueResult
             is NetworkResult.Loading -> queueResult
-            else -> NetworkResult.Error(message = "Unexpected transfer state")
         }
     }
 

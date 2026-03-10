@@ -43,7 +43,6 @@ class TransmissionClient(
             is NetworkResult.Success -> result.data.toUnitResult()
             is NetworkResult.Error -> result
             is NetworkResult.Loading -> result
-            else -> NetworkResult.Error(message = "Unexpected Transmission test state")
         }
     }
 
@@ -78,16 +77,14 @@ class TransmissionClient(
                     is NetworkResult.Success -> {
                         val torrentsElement = rpcResult.data["torrents"] ?: buildJsonArray {}
                         val torrents = json.decodeFromJsonElement<List<TransmissionTorrent>>(torrentsElement)
-                        NetworkResult.Success(torrents.map { it.toDownloadItem() })
+                        NetworkResult.Success(torrents.map { it.toDownloadItem(downloadClient) })
                     }
                     is NetworkResult.Error -> rpcResult
                     is NetworkResult.Loading -> rpcResult
-                    else -> NetworkResult.Error(message = "Unexpected Transmission torrents state")
                 }
             }
             is NetworkResult.Error -> result
             is NetworkResult.Loading -> result
-            else -> NetworkResult.Error(message = "Unexpected Transmission request state")
         }
     }
 
@@ -123,7 +120,6 @@ class TransmissionClient(
             is NetworkResult.Success -> result.data.toUnitResult()
             is NetworkResult.Error -> result
             is NetworkResult.Loading -> result
-            else -> NetworkResult.Error(message = "Unexpected Transmission delete state")
         }
     }
 
@@ -135,6 +131,7 @@ class TransmissionClient(
                         val sessionStats = json.decodeFromJsonElement<TransmissionSessionStats>(rpcResult.data)
                         NetworkResult.Success(
                             DownloadTransferInfo(
+                                client = downloadClient,
                                 downloadSpeed = sessionStats.downloadSpeed,
                                 uploadSpeed = sessionStats.uploadSpeed
                             )
@@ -142,12 +139,10 @@ class TransmissionClient(
                     }
                     is NetworkResult.Error -> rpcResult
                     is NetworkResult.Loading -> rpcResult
-                    else -> NetworkResult.Error(message = "Unexpected Transmission transfer state")
                 }
             }
             is NetworkResult.Error -> result
             is NetworkResult.Loading -> result
-            else -> NetworkResult.Error(message = "Unexpected Transmission transfer state")
         }
     }
 
@@ -237,15 +232,16 @@ class TransmissionClient(
         }
     }
 
-    private fun TransmissionTorrent.toDownloadItem(): DownloadItem {
+    private fun TransmissionTorrent.toDownloadItem(client: DownloadClient): DownloadItem {
         return DownloadItem(
+            client = client,
             id = id.toString(),
             name = name,
             size = totalSize,
             progress = percentDone.coerceIn(0.0, 1.0),
             downloadSpeed = rateDownload,
             uploadSpeed = rateUpload,
-            eta = if (eta <= 0) "" else eta.toString(),
+            eta = eta,
             status = status.toDownloadStatus(),
             category = downloadDir,
             addedOn = addedDate

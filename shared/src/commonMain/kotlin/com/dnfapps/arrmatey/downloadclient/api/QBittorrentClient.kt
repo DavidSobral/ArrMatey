@@ -34,25 +34,22 @@ class QBittorrentClient(
             }
             is NetworkResult.Error -> authResult
             is NetworkResult.Loading -> NetworkResult.Loading
-            else -> NetworkResult.Error(message = "Unexpected authentication state")
         }
     }
 
     override suspend fun pauseDownload(id: String): NetworkResult<Unit> {
         return when (val authResult = ensureAuthenticated()) {
-            is NetworkResult.Success -> postTorrentAction("api/v2/torrents/pause", id)
+            is NetworkResult.Success -> postTorrentAction("api/v2/torrents/stop", id)
             is NetworkResult.Error -> authResult
             is NetworkResult.Loading -> NetworkResult.Loading
-            else -> NetworkResult.Error(message = "Unexpected authentication state")
         }
     }
 
     override suspend fun resumeDownload(id: String): NetworkResult<Unit> {
         return when (val authResult = ensureAuthenticated()) {
-            is NetworkResult.Success -> postTorrentAction("api/v2/torrents/resume", id)
+            is NetworkResult.Success -> postTorrentAction("api/v2/torrents/start", id)
             is NetworkResult.Error -> authResult
             is NetworkResult.Loading -> NetworkResult.Loading
-            else -> NetworkResult.Error(message = "Unexpected authentication state")
         }
     }
 
@@ -75,7 +72,6 @@ class QBittorrentClient(
             }
             is NetworkResult.Error -> authResult
             is NetworkResult.Loading -> NetworkResult.Loading
-            else -> NetworkResult.Error(message = "Unexpected authentication state")
         }
     }
 
@@ -85,6 +81,7 @@ class QBittorrentClient(
                 httpClient.safeGet<QBittorrentTransferInfoResponse>("api/v2/transfer/info")
                     .map { info ->
                         DownloadTransferInfo(
+                            client = downloadClient,
                             downloadSpeed = info.downloadSpeed,
                             uploadSpeed = info.uploadSpeed
                         )
@@ -92,7 +89,6 @@ class QBittorrentClient(
             }
             is NetworkResult.Error -> authResult
             is NetworkResult.Loading -> NetworkResult.Loading
-            else -> NetworkResult.Error(message = "Unexpected authentication state")
         }
     }
 
@@ -123,7 +119,6 @@ class QBittorrentClient(
                 loginResult
             }
             is NetworkResult.Loading -> loginResult
-            else -> NetworkResult.Error(message = "Unexpected login state")
         }
     }
 
@@ -144,13 +139,14 @@ class QBittorrentClient(
 
     private fun QBittorrentTorrent.toDownloadItem(): DownloadItem {
         return DownloadItem(
+            client = downloadClient,
             id = hash,
             name = name,
             size = size,
             progress = progress,
             downloadSpeed = downloadSpeed,
             uploadSpeed = uploadSpeed,
-            eta = if (eta <= 0) "" else eta.toString(),
+            eta = eta,
             status = state.toDownloadStatus(),
             category = category,
             addedOn = addedOn
@@ -160,6 +156,7 @@ class QBittorrentClient(
     private fun String.toDownloadStatus(): DownloadItemStatus {
         return when {
             contains("paused", ignoreCase = true) -> DownloadItemStatus.Paused
+            contains("stopped", ignoreCase = true) -> DownloadItemStatus.Paused
             contains("queued", ignoreCase = true) -> DownloadItemStatus.Queued
             contains("error", ignoreCase = true) -> DownloadItemStatus.Failed
             contains("missingfiles", ignoreCase = true) -> DownloadItemStatus.Failed

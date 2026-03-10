@@ -10,99 +10,175 @@ struct AddEditDownloadClientScreen: View {
 
     @ObservedObject private var viewModel: DownloadClientSettingsViewModelS
     @Environment(\.dismiss) private var dismiss
+    
+    @State private var confirmDelete: Bool = false
 
-    let existingClient: DownloadClient?
-
-    @State private var label: String
-    @State private var selectedType: DownloadClientType
-    @State private var url: String
-    @State private var username: String
-    @State private var password: String
-    @State private var apiKey: String
-    @State private var enabled: Bool
-    @State private var errorMessage: String? = nil
-
-    private var isEditing: Bool { existingClient != nil }
-
-    init(viewModel: DownloadClientSettingsViewModelS, client: DownloadClient? = nil) {
-        self._viewModel = ObservedObject(wrappedValue: viewModel)
-        self.existingClient = client
-        _label = State(initialValue: client?.label ?? "")
-        _selectedType = State(initialValue: client?.type ?? .qBittorrent)
-        _url = State(initialValue: client?.url ?? "")
-        _username = State(initialValue: client?.username ?? "")
-        _password = State(initialValue: client?.password ?? "")
-        _apiKey = State(initialValue: client?.apiKey ?? "")
-        _enabled = State(initialValue: client?.enabled ?? true)
+    init(id: Int64? = nil) {
+        self.viewModel = DownloadClientSettingsViewModelS(id: id)
+    }
+    
+    var hasLabelConflict: Bool {
+        (viewModel.uiState.mutationState as? DownloadClientMutationStateConflict)?.fields.contains(.downloadClientLabel) ?? false
+    }
+    
+    var hasUrlConflict: Bool {
+        (viewModel.uiState.mutationState as? DownloadClientMutationStateConflict)?.fields.contains(.downloadClientUrl) ?? false
     }
 
     var body: some View {
+        formContent
+            .toolbar {
+                toolbarContent
+            }
+            .onChange(of: viewModel.mutationSuccess) { _, isSuccess in
+                if isSuccess {
+                    dismiss()
+                }
+            }
+    }
+    
+    private var formContent: some View {
         Form {
+            typeSection
+            authSection
             Section {
-                TextField(MR.strings().client_label.localized(), text: $label)
-                Picker(MR.strings().client_type.localized(), selection: $selectedType) {
-                    ForEach(DownloadClientType.entries, id: \.self) { type in
-                        Text(type.displayName).tag(type)
-                    }
-                }
-                TextField(MR.strings().client_url.localized(), text: $url)
-                    .keyboardType(.URL)
-                    .autocapitalization(.none)
-                TextField(MR.strings().client_username.localized(), text: $username)
-                    .autocapitalization(.none)
-                SecureField(MR.strings().client_password.localized(), text: $password)
-                TextField(MR.strings().client_api_key.localized(), text: $apiKey)
-                    .autocapitalization(.none)
-                Toggle(MR.strings().client_enabled.localized(), isOn: $enabled)
+                Toggle(
+                    MR.strings().client_enabled.localized(),
+                    isOn: Binding(
+                        get: { viewModel.uiState.enabled },
+                        set: { viewModel.updateEnabled($0) }
+                    )
+                )
             }
-
-            if let errorMessage {
-                Section {
-                    Text(errorMessage)
-                        .foregroundStyle(.red)
-                }
-            }
-
-            Section {
-                Button(MR.strings().save.localized()) {
-                    saveClient()
-                }
-            }
-        }
-        .navigationTitle(isEditing ? MR.strings().edit_download_client.localized() : MR.strings().add_download_client.localized())
-        .onChange(of: viewModel.mutationState) { _, state in
-            if state is DownloadClientMutationStateSuccess {
-                viewModel.resetMutationState()
-                dismiss()
-            } else if let conflict = state as? DownloadClientMutationStateConflict {
-                errorMessage = MR.strings().conflict_on_fields.localized()
-            } else if let error = state as? DownloadClientMutationStateError {
-                errorMessage = error.message
-            } else {
-                errorMessage = nil
-            }
-        }
-        .onAppear {
-            viewModel.resetMutationState()
         }
     }
-
-    private func saveClient() {
-        let client = DownloadClient(
-            id: existingClient?.id ?? 0,
-            type: selectedType,
-            label: label,
-            url: url,
-            username: username,
-            password: password,
-            apiKey: apiKey,
-            enabled: enabled,
-            selected: existingClient?.selected ?? false
-        )
-        if isEditing {
-            viewModel.updateClient(client)
-        } else {
-            viewModel.createClient(client)
+    
+    private var typeSection: some View {
+        Section {
+            Picker(MR.strings().client_type.localized(), selection: Binding(
+                get: { viewModel.uiState.selectedType },
+                set: { viewModel.updateSelectedType($0) }
+            )) {
+                ForEach(DownloadClientType.allCases, id: \.self) { type in
+                    Text(type.displayName).tag(type)
+                }
+            }
+            .tint(.primary)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 24) {
+                    Text(MR.strings().client_label.localized()).layoutPriority(2)
+                    TextField(
+                        text: Binding(
+                            get: { viewModel.uiState.label },
+                            set: { viewModel.updateLabel($0) }
+                        ),
+                        prompt: Text(viewModel.uiState.selectedType.displayName)
+                    ) {
+                        EmptyView()
+                    }
+                    .multilineTextAlignment(.trailing)
+                }
+                if hasLabelConflict {
+                    Text(MR.strings().field_conflict.formatted(args: [MR.strings().client_label.localized()]))
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 24) {
+                    Text(MR.strings().host.localized()).layoutPriority(2)
+                    TextField(
+                        text: Binding(
+                            get: { viewModel.uiState.url },
+                            set: { viewModel.updateUrl($0) }
+                        ),
+                        prompt: Text(MR.strings().host_placeholder.localized() + String(describing: viewModel.uiState.selectedType.defaultPort))
+                    ) {
+                        EmptyView()
+                    }
+                    .multilineTextAlignment(.trailing)
+                    .textInputAutocapitalization(.never)
+                }
+                if hasUrlConflict {
+                    Text(MR.strings().field_conflict.formatted(args: [MR.strings().client_url.localized()]))
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+            }
+        }
+    }
+    
+    private var authSection: some View {
+        Section {
+            HStack(spacing: 24) {
+                Text(MR.strings().client_username.localized()).layoutPriority(2)
+                TextField(
+                    text: Binding(
+                        get: { viewModel.uiState.username },
+                        set: { viewModel.updateUsername($0) }
+                    )
+                ) {
+                    EmptyView()
+                }
+                .multilineTextAlignment(.trailing)
+                .textInputAutocapitalization(.never)
+            }
+            HStack(spacing: 24) {
+                Text(MR.strings().client_password.localized()).layoutPriority(2)
+                SecureField(
+                    text: Binding(
+                        get: { viewModel.uiState.password },
+                        set: { viewModel.updatePassword($0) }
+                    )
+                ) {
+                    EmptyView()
+                }
+                .multilineTextAlignment(.trailing)
+                .textInputAutocapitalization(.never)
+            }
+            HStack(spacing: 24) {
+                Text(MR.strings().client_api_key.localized()).layoutPriority(2)
+                TextField(
+                    text: Binding(
+                        get: { viewModel.uiState.apiKey },
+                        set: { viewModel.updateApiKey($0) }
+                    )
+                ) {
+                    EmptyView()
+                }
+                .multilineTextAlignment(.trailing)
+                .textInputAutocapitalization(.never)
+            }
+        }
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        if viewModel.uiState.isEditing {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    confirmDelete = true
+                }) {
+                    Image(systemName: "trash")
+                        .imageScale(.medium)
+                }
+                .buttonStyle(BorderedProminentButtonStyle())
+                .tint(.red)
+            }
+        }
+        ToolbarItem(placement: .primaryAction) {
+            Button(action: {
+                viewModel.submit()
+            }) {
+                if viewModel.uiState.isTesting {
+                    ProgressView().progressViewStyle(CircularProgressViewStyle())
+                } else {
+                    Text(MR.strings().save.localized())
+                }
+            }
+            .disabled(!viewModel.uiState.saveButtonEnabled || viewModel.uiState.isTesting)
         }
     }
 }

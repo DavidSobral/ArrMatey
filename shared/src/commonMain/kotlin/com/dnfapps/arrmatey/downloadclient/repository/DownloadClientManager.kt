@@ -81,10 +81,45 @@ class DownloadClientManager(
     fun getApiClient(id: Long): DownloadClientApi? =
         getDownloadClientApi(id)
 
-    fun getSelectedDownloadClientApiSnapshot(): DownloadClientApi? {
-        val selectedClient = downloadClientRepository.allDownloadClientsFlow.value.firstOrNull { it.selected }
-        return selectedClient?.let { getDownloadClientApi(it.id) }
+    suspend fun getOrCreateApi(id: Long): DownloadClientApi? {
+        _downloadClientApis.value[id]?.let { return it }
+
+        val client = downloadClientRepository.getDownloadClientById(id) ?: return null
+        val api = createApi(client)
+
+        _downloadClientApis.value += (id to api)
+
+        return api
     }
+
+    suspend fun refreshApi(id: Long): DownloadClientApi? {
+        _downloadClientApis.value -= id
+
+        val client = downloadClientRepository.getDownloadClientById(id) ?: return null
+        val api = createApi(client)
+
+        _downloadClientApis.value += (id to api)
+
+        return api
+    }
+
+    fun removeApi(id: Long) {
+        _downloadClientApis.value -= id
+    }
+
+    fun createApiFromClient(client: DownloadClient): DownloadClientApi {
+        return createApi(client)
+    }
+
+    suspend fun getSelectedDownloadClientApiSnapshot(): DownloadClientApi? {
+        val selectedClient = downloadClientRepository.getSelectedDownloadClient()
+        return selectedClient?.let {
+            getOrCreateApi(it.id)
+        }
+    }
+
+    suspend fun getAllDownloadClientApis(): List<DownloadClientApi> =
+        _downloadClientApis.value.values.toList()
 
     suspend fun getDownloadClientById(id: Long): DownloadClient? =
         downloadClientRepository.getDownloadClientById(id)
@@ -100,7 +135,6 @@ class DownloadClientManager(
             DownloadClientType.SABnzbd -> SABnzbdClient(downloadClient, httpClient)
             DownloadClientType.Deluge -> DelugeClient(downloadClient, httpClient)
             DownloadClientType.Transmission -> TransmissionClient(downloadClient, httpClient)
-            else -> SABnzbdClient(downloadClient, httpClient)
         }
     }
 

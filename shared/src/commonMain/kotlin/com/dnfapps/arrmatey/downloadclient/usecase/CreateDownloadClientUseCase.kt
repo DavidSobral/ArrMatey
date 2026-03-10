@@ -8,7 +8,6 @@ import com.dnfapps.arrmatey.downloadclient.state.DownloadClientMutationState
 class CreateDownloadClientUseCase(
     private val downloadClientRepository: DownloadClientRepository
 ) {
-
     suspend operator fun invoke(downloadClient: DownloadClient): DownloadClientMutationState {
         return when (val result = downloadClientRepository.createDownloadClient(downloadClient)) {
             is DownloadClientInsertResult.Success -> DownloadClientMutationState.Success(result.id)

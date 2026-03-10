@@ -19,6 +19,7 @@ import com.dnfapps.arrmatey.arr.viewmodel.MovieFilesViewModel
 import com.dnfapps.arrmatey.compose.utils.ReleaseFilterBy
 import com.dnfapps.arrmatey.datastore.PreferencesStore
 import com.dnfapps.arrmatey.downloadclient.viewmodel.DownloadClientSettingsViewModel
+import com.dnfapps.arrmatey.downloadclient.viewmodel.DownloadClientsViewModel
 import com.dnfapps.arrmatey.downloadclient.viewmodel.DownloadQueueViewModel
 import com.dnfapps.arrmatey.instances.model.InstanceType
 import com.dnfapps.arrmatey.seerr.viewmodel.RequestsViewModel
@@ -73,7 +74,10 @@ object KoinBridge: KoinComponent {
     fun getDownloadQueueViewModel(): DownloadQueueViewModel =
         getKoin().get()
 
-    fun getDownloadClientSettingsViewModel(): DownloadClientSettingsViewModel =
+    fun getDownloadClientSettingsViewModel(clientId: Long?): DownloadClientSettingsViewModel =
+        getKoin().get { parametersOf(clientId) }
+
+    fun getDownloadClientsViewModel(): DownloadClientsViewModel =
         getKoin().get()
 
     fun getGenericClient(): GenericClient =

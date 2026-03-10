@@ -32,7 +32,6 @@ sealed interface SettingsScreen : NavKey {
     data object Dev: SettingsScreen
     data object TabPreferences: SettingsScreen
     data class ArrDashboard(val id: Long): SettingsScreen
-    data object DownloadClients: SettingsScreen
     data object AddDownloadClient: SettingsScreen
     data class EditDownloadClient(val id: Long): SettingsScreen
 }

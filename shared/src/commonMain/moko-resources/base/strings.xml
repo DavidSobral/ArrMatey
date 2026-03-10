@@ -29,6 +29,7 @@
 
     <!-- Messages -->
     <string name="confirm_delete_instance">Are you sure you want to delete %1$s?</string>
+    <string name="confirm_delete_download_client">Are you sure you wnt to delete this download client?</string>
     <string name="confirm_grab_release">Are you sure you want to grab %1$s?</string>
     <string name="couldnt_connect_message">There was an error connecting to the server</string>
     <string name="no_type_instances_message">You don\'t have any %1$s instances added yet</string>
@@ -243,6 +244,16 @@
     <string name="radarr_description">Radarr is a movie collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new movies and will interface with clients and indexers to grab, sort, and rename them. It can also be configured to automatically upgrade the quality of existing files in the library when a better quality format becomes available</string>
     <string name="lidarr_description">Lidarr is a music collection manager for Usenet and BitTorrent users. It can monitor multiple RSS feeds for new tracks from your favorite artists and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.</string>
     <string name="seerr_description">Seerr is a free and open source software application for managing requests for your media library. It integrates with the media server of your choice: Jellyfin, Plex, and Emby. In addition, it integrates with your existing services, such as Sonarr, Radarr.</string>
+    <string name="qbitt_description">qBittorrent is a bittorrent client programmed in C++ / Qt that uses libtorrent (sometimes called libtorrent-rasterbar) by Arvid Norberg. It aims to be a good alternative to all other bittorrent clients out there. qBittorrent is fast, stable and provides unicode support as well as many features.</string>
+    <string name="sabnzbd_description">SABnzbd is an Open Source Binary Newsreader written in Python. It's totally free, easy to use, and works practically everywhere. SABnzbd makes Usenet as simple and streamlined as possible by automating everything we can. All you have to do is add an .nzb. SABnzbd takes over from there, where it will be automatically downloaded, verified, repaired, extracted and filed away with zero human interaction. SABnzbd offers an easy setup wizard and has self-analysis tools to verify your setup.</string>
+    <string name="deluge_description">Deluge is a BitTorrent client that utilizes a daemon/client model. It has various user interfaces available such as the GTK-UI, Web-UI and Console-UI. It uses libtorrent at its core to handle the BitTorrent protocol.</string>
+    <string name="transmission_description">Transmission is a fast, easy, and free BitTorrent client. It comes in several flavors:
+
+        • A native macOS GUI application
+        • GTK+ and Qt GUI applications for Linux, BSD, etc.
+        • A Qt-based Windows-compatible GUI application
+        • A headless daemon for servers and routers
+        • A web UI for remote controlling any of the above</string>
 
     <!-- Movie Statuses -->
     <string name="tba">TBA</string>
@@ -372,5 +383,20 @@
     <string name="crash_report_subject">ArrMatey Crash Report</string>
     <string name="share_crash_log">Share Crash Log</string>
     <string name="share_crash_log_message">It looks like the app crashed the last time you were using it. Would you like to share the crash log? You will be able to copy the log to paste into GitHub or you can share to GitHub directly to open an issue.</string>
+
+    <!--- Download Status -->
+    <string name="downloading">Downloading</string>
+    <string name="paused">Paused</string>
+    <string name="queued">Queued</string>
+    <string name="completed">Completed</string>
+    <string name="failed">Failed</string>
+    <string name="seeding">Seeding</string>
+    <string name="stalled">Stalled</string>
+    <string name="search_downloads">Search %1$d downloads</string>
+    <string name="size">Size</string>
+    <string name="progress">Progress</string>
+    <string name="download_speed">Download Speed</string>
+    <string name="upload_speed">Upload Speed</string>
+    <string name="eta">ETA</string>
 
 </resources>

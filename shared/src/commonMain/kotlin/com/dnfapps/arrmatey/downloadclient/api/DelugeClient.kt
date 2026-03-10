@@ -144,6 +144,7 @@ class DelugeClient(
                             is NetworkResult.Success -> {
                                 NetworkResult.Success(
                                     DownloadTransferInfo(
+                                        client = downloadClient,
                                         downloadSpeed = rpcResult.data.downloadRate,
                                         uploadSpeed = rpcResult.data.uploadRate
                                     )
@@ -257,13 +258,14 @@ class DelugeClient(
 
     private fun DelugeTorrentData.toDownloadItem(): DownloadItem {
         return DownloadItem(
+            client = downloadClient,
             id = hash,
             name = name,
             size = totalSize,
             progress = (progress / 100.0).coerceIn(0.0, 1.0),
             downloadSpeed = downloadPayloadRate,
             uploadSpeed = uploadPayloadRate,
-            eta = if (eta <= 0) "" else eta.toString(),
+            eta = eta,
             status = state.toDownloadStatus(),
             category = label,
             addedOn = timeAdded

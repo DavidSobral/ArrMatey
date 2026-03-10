@@ -12,19 +12,7 @@ struct DownloadQueueItemView: View {
     let onPause: () -> Void
     let onResume: () -> Void
     let onDelete: () -> Void
-
-    private var statusLabel: String {
-        switch item.status {
-        case .downloading: return "Downloading"
-        case .paused:      return "Paused"
-        case .queued:      return "Queued"
-        case .completed:   return "Completed"
-        case .failed:      return "Failed"
-        case .seeding:     return "Seeding"
-        case .stalled:     return "Stalled"
-        default:           return item.status.name
-        }
-    }
+    let showClientInfo: Bool
 
     private var canPause: Bool { item.status == .downloading || item.status == .seeding }
     private var canResume: Bool { item.status == .paused || item.status == .stalled }
@@ -37,10 +25,11 @@ struct DownloadQueueItemView: View {
                         .font(.body)
                         .fontWeight(.medium)
                         .lineLimit(2)
-                    Text(statusLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text(item.status.resource.localized())
+                        
                 }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 Spacer()
                 HStack(spacing: 4) {
                     if canPause {
@@ -66,10 +55,24 @@ struct DownloadQueueItemView: View {
             ProgressView(value: item.progress)
                 .tint(progressColor)
 
-            if !item.eta.isEmpty {
-                Text(item.eta)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                if !item.etaString.isEmpty {
+                    Text("ETA: " + item.etaString)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                if showClientInfo {
+                    HStack(spacing: 8) {
+                        item.client.type.icon.toImage(renderingMode: .original)
+                        
+                        Text(item.client.label)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
         .padding(12)
@@ -86,3 +89,5 @@ struct DownloadQueueItemView: View {
         }
     }
 }
+
+

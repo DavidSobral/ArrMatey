@@ -2,12 +2,11 @@ package com.dnfapps.arrmatey.downloadclient.usecase
 
 import com.dnfapps.arrmatey.downloadclient.model.DownloadClient
 import com.dnfapps.arrmatey.downloadclient.repository.DownloadClientRepository
+import kotlinx.coroutines.flow.Flow
 
-class DeleteDownloadClientUseCase(
+class ObserveSelectedDownloadClientsUseCase(
     private val downloadClientRepository: DownloadClientRepository
 ) {
-    suspend operator fun invoke(clientId: Long) {
-        val downloadClient = downloadClientRepository.getDownloadClientById(clientId) ?: return
-        downloadClientRepository.deleteDownloadClient(downloadClient)
-    }
+    operator fun invoke(): Flow<DownloadClient?> =
+        downloadClientRepository.observeSelectedDownloadClient()
 }

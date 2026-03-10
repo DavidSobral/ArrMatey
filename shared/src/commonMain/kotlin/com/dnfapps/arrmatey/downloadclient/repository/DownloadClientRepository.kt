@@ -20,7 +20,7 @@ class DownloadClientRepository(
     val allDownloadClientsFlow: StateFlow<List<DownloadClient>> = downloadClientDao.observeAllDownloadClients()
         .stateIn(
             scope = CoroutineScope(Dispatchers.IO),
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = emptyList()
         )
 
@@ -32,6 +32,12 @@ class DownloadClientRepository(
 
     suspend fun getDownloadClientById(id: Long): DownloadClient? =
         downloadClientDao.getDownloadClientById(id)
+
+    suspend fun getSelectedDownloadClient(): DownloadClient? =
+        downloadClientDao.getAllDownloadClients().firstOrNull { it.selected }
+
+    suspend fun getAllDownloadClients(): List<DownloadClient> =
+        downloadClientDao.getAllDownloadClients()
 
     suspend fun createDownloadClient(downloadClient: DownloadClient): DownloadClientInsertResult {
         return try {

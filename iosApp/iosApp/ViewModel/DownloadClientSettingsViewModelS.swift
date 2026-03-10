@@ -9,40 +9,59 @@ import SwiftUI
 @MainActor
 class DownloadClientSettingsViewModelS: ObservableObject {
     private let viewModel: DownloadClientSettingsViewModel
+    
+    @Published private(set) var uiState: DownloadClientConfigurationUiState = DownloadClientConfigurationUiState()
+    @Published private(set) var downloadClient: DownloadClient? = nil
+    
+    @Published private(set) var mutationSuccess: Bool = false
 
-    @Published private(set) var downloadClients: [DownloadClient] = []
-    @Published private(set) var connectionStates: [KotlinLong: DownloadClientConnectionState] = [:]
-    @Published private(set) var mutationState: DownloadClientMutationState = DownloadClientMutationStateInitial()
-    @Published private(set) var isMutationSuccess: Bool = false
-
-    init() {
-        self.viewModel = KoinBridge.shared.getDownloadClientSettingsViewModel()
+    init(id: Int64? = nil) {
+        self.viewModel = KoinBridge.shared.getDownloadClientSettingsViewModel(clientId: id as? KotlinLong)
         startObserving()
     }
 
     private func startObserving() {
-        viewModel.downloadClients.observeAsync { self.downloadClients = $0 }
-        viewModel.connectionStates.observeAsync { self.connectionStates = $0 }
-        viewModel.mutationState.observeAsync { state in
-            self.mutationState = state
-            self.isMutationSuccess = state is DownloadClientMutationStateSuccess
+        viewModel.uiState.observeAsync {
+            self.uiState = $0
+            self.mutationSuccess = $0.mutationState is DownloadClientMutationStateSuccess
         }
+        viewModel.downloadClient.observeAsync { self.downloadClient = $0 }
     }
 
-    func testConnection(id: Int64) {
-        viewModel.testConnection(id: id)
+    func updateLabel(_ label: String) {
+        viewModel.updateLabel(label: label)
     }
-
-    func deleteClient(_ client: DownloadClient) {
-        viewModel.deleteClient(downloadClient: client)
+    
+    func updateSelectedType(_ type: DownloadClientType) {
+        viewModel.updateSelectedType(type: type)
     }
-
-    func createClient(_ client: DownloadClient) {
-        viewModel.createClient(downloadClient: client)
+    
+    func updateUrl(_ url: String) {
+        viewModel.updateUrl(url: url)
     }
-
-    func updateClient(_ client: DownloadClient) {
-        viewModel.updateClient(downloadClient: client)
+    
+    func updateUsername(_ username: String) {
+        viewModel.updateUsername(username: username)
+    }
+    
+    func updatePassword(_ password: String) {
+        viewModel.updatePassword(password: password)
+    }
+    
+    func updateApiKey(_ apiKey: String) {
+        viewModel.updateApiKey(apiKey: apiKey)
+    }
+    
+    func updateEnabled(_ enabled: Bool) {
+        viewModel.updateEnabled(enabled: enabled)
+    }
+    
+    func deleteClient() {
+        viewModel.deleteClient()
+    }
+    
+    func submit() {
+        viewModel.submit()
     }
 
     func resetMutationState() {
