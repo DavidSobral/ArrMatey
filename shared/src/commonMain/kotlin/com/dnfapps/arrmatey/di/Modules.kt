@@ -153,7 +153,7 @@ val preferencesModule = module {
 val repositoryModule = module {
     single { InstanceRepository(get()) }
     single { InstancePreferenceStoreRepository(get()) }
-    single { InstanceManager(get(), get()) }
+    single { InstanceManager(get(), get(), get()) }
 
     single { DownloadClientRepository(get()) }
     single { DownloadClientManager(get(), get()) }
@@ -167,7 +167,7 @@ val serviceModule = module {
 
 val useCaseModule = module {
     factory { GetArrInstanceRepositoryUseCase(get()) }
-    factory { GetLibraryUseCase(get(), get()) }
+    factory { GetLibraryUseCase(get(), get(), get()) }
     factory { GetMediaDetailsUseCase(get()) }
     factory { UpdateInstancePreferencesUseCase(get()) }
     factory { AddMediaItemUseCase(get()) }

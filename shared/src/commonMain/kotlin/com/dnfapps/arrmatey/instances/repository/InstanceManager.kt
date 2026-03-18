@@ -4,6 +4,7 @@ import com.dnfapps.arrmatey.arr.api.client.HttpClientFactory
 import com.dnfapps.arrmatey.database.InstanceRepository
 import com.dnfapps.arrmatey.instances.model.Instance
 import com.dnfapps.arrmatey.instances.model.InstanceType
+import dev.shivathapaa.logger.api.Logger
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +19,8 @@ import kotlinx.coroutines.launch
 
 class InstanceManager(
     private val instanceRepository: InstanceRepository,
-    private val httpClientFactory: HttpClientFactory
+    private val httpClientFactory: HttpClientFactory,
+    private val logger: Logger
 ) {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -52,20 +54,24 @@ class InstanceManager(
         instances.forEach { instance ->
             if (!currentRepos.containsKey(instance.id)) {
                 val httpClient = httpClientFactory.create(instance)
-                currentRepos[instance.id] = createScopedRepository(instance, httpClient)
+                currentRepos[instance.id] = createScopedRepository(instance, httpClient, logger)
             }
         }
 
         _instanceRepositories.value = currentRepos
     }
 
-    private fun createScopedRepository(instance: Instance, httpClient: HttpClient): InstanceScopedRepository {
+    private fun createScopedRepository(
+        instance: Instance,
+        httpClient: HttpClient,
+        logger: Logger
+    ): InstanceScopedRepository {
         return when (instance.type) {
 //            InstanceType.Seerr -> SeerrInstanceRepository(instance, httpClient)
             InstanceType.Prowlarr -> ProwlarrInstanceRepository(instance, httpClient)
             InstanceType.Sonarr,
             InstanceType.Radarr,
-            InstanceType.Lidarr -> ArrInstanceRepository(instance, httpClient)
+            InstanceType.Lidarr -> ArrInstanceRepository(instance, httpClient, logger)
         }
     }
 

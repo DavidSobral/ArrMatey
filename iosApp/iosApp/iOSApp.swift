@@ -11,7 +11,7 @@ struct iOSApp: App {
         KoinHelperKt.doInitKoin()
         LoggingHelperKt.doInitLogging()
         NetworkUtilsKt.initializeNetworkUtils()
-        IOSCrashManager().initialize()
+        IOSCrashManager.shared.initialize()
         preferences = PreferencesViewModel()
     }
     

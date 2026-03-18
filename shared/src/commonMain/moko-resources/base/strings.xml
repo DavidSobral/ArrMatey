@@ -394,8 +394,8 @@
 
     <!-- Crash Reporting -->
     <string name="crash_report_subject">ArrMatey Crash Report</string>
-    <string name="share_crash_log">Share Crash Log</string>
-    <string name="share_crash_log_message">It looks like the app crashed the last time you were using it. Would you like to share the crash log? You will be able to copy the log to paste into GitHub or you can share to GitHub directly to open an issue.</string>
+    <string name="share_crash_log">Share Logs</string>
+    <string name="share_crash_log_message">Would you like to share the apps most recent logs? You will be able to share the log directly to GitHub if you have the app installed, or you can download the log file to your device and attach to an issue manually.</string>
 
     <!--- Download Status -->
     <string name="downloading">Downloading</string>

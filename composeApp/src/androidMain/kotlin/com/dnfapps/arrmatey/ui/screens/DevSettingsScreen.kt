@@ -215,19 +215,12 @@ fun DevSettingsScreen(
                 Button(onClick = { shareLogs(context) }) {
                     Text("Share logs")
                 }
-
-//                LabelledSwitch(
-//                    label = "Use clear logo",
-//                    checked = useClearLogo,
-//                    onCheckedChange = { preferenceStore.toggleUseClearLogo() }
-//                )
             }
         }
     }
 }
 
-
-private fun shareLogs(context: Context) {
+fun shareLogs(context: Context) {
     try {
         val logFile = File(LogReader.getLogFilePath())
 

@@ -47,8 +47,4 @@ actual object LogReader {
     actual fun getLogFilePath(): String {
         return LogFileManager.getLogFilePath("arrmatey.log")
     }
-
-    actual fun shareLogsFile(): String {
-        return getLogFilePath()
-    }
 }

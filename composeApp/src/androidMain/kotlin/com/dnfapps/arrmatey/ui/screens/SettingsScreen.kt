@@ -57,6 +57,7 @@ import com.dnfapps.arrmatey.downloadclient.model.DownloadClient
 import com.dnfapps.arrmatey.entensions.openLink
 import com.dnfapps.arrmatey.instances.model.Instance
 import com.dnfapps.arrmatey.isDebug
+import com.dnfapps.arrmatey.logging.LogReader
 import com.dnfapps.arrmatey.navigation.NavigationManager
 import com.dnfapps.arrmatey.navigation.SettingsNavigation
 import com.dnfapps.arrmatey.navigation.SettingsScreen
@@ -95,7 +96,7 @@ fun SettingsScreen(
 
     var showLibrariesSheet by remember { mutableStateOf(false) }
 
-    var confirmShareLastLog by remember { mutableStateOf<String?>(null) }
+    var confirmShareLastLog by remember { mutableStateOf(false) }
 
     val useServiceNavLogos by viewModel.useServiceNavLogos.collectAsStateWithLifecycle()
 
@@ -277,10 +278,7 @@ fun SettingsScreen(
                         context.openLink(moko.getString(MR.strings.feature_request_link))
                     },
                     onBugReportClick = {
-                        confirmShareLastLog = crashManager.getLastCrashLog()
-                        if (confirmShareLastLog == null) {
-                            context.openLink(moko.getString(MR.strings.bug_report_link))
-                        }
+                        confirmShareLastLog = true
                     },
                     onGitHubClick = {
                         context.openLink(moko.getString(MR.strings.app_link))
@@ -352,26 +350,23 @@ fun SettingsScreen(
             }
         }
 
-        confirmShareLastLog?.let { log ->
+        if (confirmShareLastLog) {
             AlertDialog(
                 onDismissRequest = {
-                    confirmShareLastLog = null
-                    crashManager.clearCrashLog()
+                    confirmShareLastLog = false
                 },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            crashManager.shareCrashLog(log)
-                            crashManager.clearCrashLog()
-                            confirmShareLastLog = null
+                            shareLogs(context)
+                            confirmShareLastLog = false
                         }
                     ) { Text(mokoString(MR.strings.yes)) }
                 },
                 dismissButton = {
                     TextButton(
                         onClick = {
-                            confirmShareLastLog = null
-                            crashManager.clearCrashLog()
+                            confirmShareLastLog = false
                             context.openLink(moko.getString(MR.strings.bug_report_link))
                         }
                     ) { Text(mokoString(MR.strings.no)) }
