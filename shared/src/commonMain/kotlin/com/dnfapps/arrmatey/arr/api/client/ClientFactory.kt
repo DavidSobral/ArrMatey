@@ -95,6 +95,9 @@ class HttpClientFactory(private val json: Json, private val logger: Logger) {
 
             defaultRequest {
                 url(downloadClient.url.trimEnd('/') + "/")
+                downloadClient.headers.forEach { (key, value) ->
+                    header(key, value)
+                }
             }
         }
 
