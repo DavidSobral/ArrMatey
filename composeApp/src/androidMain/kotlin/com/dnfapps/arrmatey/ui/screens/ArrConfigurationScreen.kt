@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.WifiFind
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -51,6 +50,7 @@ import com.dnfapps.arrmatey.instances.model.InstanceType
 import com.dnfapps.arrmatey.instances.state.AddInstanceUiState
 import com.dnfapps.arrmatey.isDebug
 import com.dnfapps.arrmatey.permissions.rememberLocationPermissionHandler
+import com.dnfapps.arrmatey.permissions.rememberNotificationPermissionHandler
 import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.ui.components.AMOutlinedTextField
 import com.dnfapps.arrmatey.ui.components.LabelledSwitch
@@ -75,7 +75,8 @@ fun ArrConfigurationScreen(
     onLocalNetworkEnabledChanged: (Boolean) -> Unit,
     onLocalNetworkUrlChanged: (String) -> Unit,
     onLocalNetworkSsidChanged: (String) -> Unit,
-    onTestLocalConnection: () -> Unit
+    onTestLocalConnection: () -> Unit,
+    onToggleNotificationsEnabled: () -> Unit
 ) {
     val apiEndpoint = uiState.apiEndpoint
     val apiKey = uiState.apiKey
@@ -102,6 +103,10 @@ fun ArrConfigurationScreen(
             ?.fields
             ?.contains(ConflictField.InstanceUrl) == true
     }
+
+    val notificationPermissionHandler = rememberNotificationPermissionHandler(
+        onGranted = { onToggleNotificationsEnabled() }
+    )
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -151,6 +156,19 @@ fun ArrConfigurationScreen(
             testButtonEnabled = !isTesting && apiEndpoint.isNotBlank() && apiKey.isNotBlank(),
             testResult = testResult,
             onTestConnection = onTestConnection
+        )
+
+        LabelledSwitch(
+            label = mokoString(MR.strings.enable_notifications),
+            sublabel = mokoString(MR.strings.enable_notifications_description),
+            checked = uiState.notificationsEnabled,
+            onCheckedChange = {
+                if (!uiState.notificationsEnabled && it) {
+                    notificationPermissionHandler.requestPermission()
+                } else {
+                    onToggleNotificationsEnabled()
+                }
+            }
         )
 
         LocalNetworkArea(
