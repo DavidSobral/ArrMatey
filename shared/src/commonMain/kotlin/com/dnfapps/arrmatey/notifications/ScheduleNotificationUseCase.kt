@@ -55,7 +55,7 @@ class ScheduleNotificationUseCase(
                     id = notificationId,
                     title = mokoStrings.getString(title),
                     message = message,
-                    scheduledTime = Clock.System.now().plus(15.seconds),//finalScheduledTime,
+                    scheduledTime = finalScheduledTime,
                     instanceName = instance.label
                 )
             }
