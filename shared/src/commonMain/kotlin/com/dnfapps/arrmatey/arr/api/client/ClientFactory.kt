@@ -8,6 +8,7 @@ import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -86,7 +87,9 @@ class HttpClientFactory(private val json: Json, private val logger: Logger) {
                 exponentialDelay()
             }
 
-            install(HttpCookies)
+            install(HttpCookies) {
+                storage = AcceptAllCookiesStorage()
+            }
 
             install(Logging) {
                 this.logger = logger
