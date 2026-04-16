@@ -194,6 +194,8 @@
     <string name="add_header">Add header</string>
     <string name="header_name">Header Name</string>
     <string name="header_value">Header Value</string>
+    <string name="local_only">Local only</string>
+    <string name="remote_only">Remote only</string>
     <string name="donate">Donate</string>
     <string name="libraries">Libraries</string>
     <string name="press_again_to_exit">Press back again to exit</string>

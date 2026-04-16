@@ -239,37 +239,64 @@ private fun HeaderItem(
     onHeaderChanged: (InstanceHeader) -> Unit,
     onDelete: () -> Unit
 ) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        AMOutlinedTextField(
-            value = header.key,
-            onValueChange = { onHeaderChanged(header.copy(key = it)) },
-            label = mokoString(MR.strings.header_name),
-            modifier = Modifier.weight(1f),
-            placeholder = "X-Custom-Header",
-            singleLine = true
-        )
-
-        AMOutlinedTextField(
-            value = header.value,
-            onValueChange = { onHeaderChanged(header.copy(value = it)) },
-            label = mokoString(MR.strings.header_value),
-            modifier = Modifier.weight(1f),
-            placeholder = "value",
-            singleLine = true
-        )
-
-        IconButton(
-            onClick = onDelete,
-            modifier = Modifier.padding(top = 8.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = mokoString(MR.strings.delete),
-                tint = MaterialTheme.colorScheme.error
+            AMOutlinedTextField(
+                value = header.key,
+                onValueChange = { onHeaderChanged(header.copy(key = it)) },
+                label = mokoString(MR.strings.header_name),
+                modifier = Modifier.weight(1f),
+                placeholder = "X-Custom-Header",
+                singleLine = true
+            )
+
+            AMOutlinedTextField(
+                value = header.value,
+                onValueChange = { onHeaderChanged(header.copy(value = it)) },
+                label = mokoString(MR.strings.header_value),
+                modifier = Modifier.weight(1f),
+                placeholder = "value",
+                singleLine = true
+            )
+
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = mokoString(MR.strings.delete),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            LabelledSwitch(
+                label = mokoString(MR.strings.local_only),
+                checked = header.sendOnlyOnLocal,
+                onCheckedChange = { 
+                    onHeaderChanged(header.copy(sendOnlyOnLocal = it, sendOnlyOnRemote = false)) 
+                },
+                modifier = Modifier.weight(1f)
+            )
+            LabelledSwitch(
+                label = mokoString(MR.strings.remote_only),
+                checked = header.sendOnlyOnRemote,
+                onCheckedChange = { 
+                    onHeaderChanged(header.copy(sendOnlyOnRemote = it, sendOnlyOnLocal = false)) 
+                },
+                modifier = Modifier.weight(1f)
             )
         }
     }

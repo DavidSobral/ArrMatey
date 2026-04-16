@@ -40,6 +40,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -87,7 +88,7 @@ fun AddEditDownloadClientScreen(
     navigation: Navigation<SettingsScreen> = navigationManager.settings()
 ) {
     val scope = rememberCoroutineScope()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -132,7 +133,7 @@ fun AddEditDownloadClientScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = { Text(text = titleText) },
                 navigationIcon = {
                     BackButton(navigation)
@@ -191,7 +192,7 @@ fun AddEditDownloadClientScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
-                .padding(bottom = navigationBarBottomInset()),
+                .padding(bottom = navigationBarBottomInset() + 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             AnimatedVisibility(

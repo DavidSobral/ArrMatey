@@ -72,12 +72,29 @@ android {
     namespace = "com.dnfapps.arrmatey"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    buildFeatures {
+        buildConfig = true
+    }
+
+    val bugReportFile = file("../.github/ISSUE_TEMPLATE/bug_report.md")
+    val bugReportContent = if (bugReportFile.exists()) {
+        bugReportFile.readText()
+            .replace(Regex("---[\\s\\S]*?---"), "")
+            .trim()
+            .replace("\n", "\\n")
+            .replace("\"", "\\\"")
+    } else {
+        ""
+    }
+
     defaultConfig {
         applicationId = "com.dnfapps.arrmatey"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 15
         versionName = "0.3.4"
+
+        buildConfigField("String", "BUG_REPORT_TEMPLATE", "\"$bugReportContent\"")
     }
     packaging {
         resources {
