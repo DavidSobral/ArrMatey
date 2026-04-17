@@ -6,6 +6,15 @@ import kotlinx.serialization.Serializable
 data class InstanceHeader(
     val key: String = "",
     val value: String = "",
-    val sendOnlyOnLocal: Boolean = false,
-    val sendOnlyOnRemote: Boolean = false
-)
+    val restrictionType: HeaderRestrictionType = HeaderRestrictionType.Always,
+    val restrictedSsids: List<String> = emptyList()
+) {
+    constructor(key: String, value: String): this(key, value, HeaderRestrictionType.Always, emptyList())
+}
+
+@Serializable
+enum class HeaderRestrictionType {
+    Always,
+    RemoteOnly,
+    SpecificSsids
+}
