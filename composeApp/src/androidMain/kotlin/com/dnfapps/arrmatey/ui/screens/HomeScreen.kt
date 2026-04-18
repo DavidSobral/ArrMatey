@@ -43,7 +43,6 @@ import com.dnfapps.arrmatey.arr.viewmodel.ActivityQueueViewModel
 import com.dnfapps.arrmatey.compose.TabItem
 import com.dnfapps.arrmatey.compose.TabManager
 import com.dnfapps.arrmatey.datastore.PreferencesStore
-import com.dnfapps.arrmatey.datastore.TabPreferences
 import com.dnfapps.arrmatey.entensions.TabItemIconView
 import com.dnfapps.arrmatey.instances.model.InstanceType
 import com.dnfapps.arrmatey.navigation.NavigationManager
@@ -57,7 +56,6 @@ import com.dnfapps.arrmatey.ui.tabs.ProwlarrTab
 import com.dnfapps.arrmatey.ui.tabs.RequestsTab
 import com.dnfapps.arrmatey.ui.tabs.SettingsTabNavHost
 import com.dnfapps.arrmatey.utils.mokoString
-import com.dnfapps.arrmatey.webpage.repository.CustomWebpageRepository
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -145,8 +143,7 @@ fun HomeScreen(
                     }
                 )
             }
-        },
-        gesturesEnabled = false
+        }
     ) {
         AnimatedContent(
             targetState = overlayTab,

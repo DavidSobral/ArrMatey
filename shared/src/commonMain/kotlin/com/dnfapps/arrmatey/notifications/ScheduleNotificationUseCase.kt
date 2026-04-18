@@ -27,7 +27,6 @@ class ScheduleNotificationUseCase(
         notificationId: Int,
         releaseType: StringResource? = null
     ) {
-        println("can show notifications - ${instance.type.supportsNotifications} && ${instance.notificationsEnabled}")
         if (instance.type.supportsNotifications && instance.notificationsEnabled) {
             val timeZone = TimeZone.currentSystemDefault()
             val localDateTime = scheduledTime.toLocalDateTime(timeZone)

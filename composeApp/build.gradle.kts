@@ -33,6 +33,7 @@ kotlin {
             implementation(libs.aboutlibraries.compose)
             implementation(libs.reorderable)
             implementation(libs.compose.markdown)
+            implementation(libs.google.fonts)
             
             implementation(libs.kmp.logger)
         }
