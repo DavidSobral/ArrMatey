@@ -85,7 +85,9 @@ fun HomeScreen(
 
     LaunchedEffect(visibleTabs, overlayTab) {
         if (overlayTab == null) {
-            navigationManager.setSelectedTab(visibleTabs.first())
+            visibleTabs.firstOrNull()?.let {
+                navigationManager.setSelectedTab(it)
+            }
         }
     }
 
