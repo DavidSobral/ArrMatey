@@ -81,7 +81,7 @@ fun HomeScreen(
     val useServiceNavIcons by preferencesStore.useServiceNavLogos.collectAsStateWithLifecycle(false)
     val tabConfig by tabManager.tabConfiguration.collectAsStateWithLifecycle()
     val visibleTabs = tabConfig.visibleTabs
-    val drawerTabs = tabConfig.drawerTabs//.filter { it != TabItem.Standard.SETTINGS }
+    val drawerTabs = tabConfig.drawerTabs
 
     val pagerState = rememberPagerState { visibleTabs.size }
 
