@@ -52,8 +52,7 @@ jobs:
             -archivePath $RUNNER_TEMP/ArrMatey.xcarchive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            ASSETCATALOG_COMPILER_APPICON_NAME=""
+            CODE_SIGNING_ALLOWED=NO
 
       - name: Package IPA
         run: |
@@ -62,12 +61,6 @@ jobs:
           cp -r "$APP_PATH" $RUNNER_TEMP/Payload/
           cd $RUNNER_TEMP
           zip -r ArrMatey.ipa Payload
-
-      - name: Upload IPA Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ArrMatey-iOS-${{ env.date_today }}
-          path: ${{ runner.temp }}/ArrMatey.ipa
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
