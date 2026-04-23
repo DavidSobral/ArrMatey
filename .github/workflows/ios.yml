@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     name: Build iOS IPA (Sideload)
+    permissions:
+      contents: write
     runs-on: macos-latest
 
     steps:
