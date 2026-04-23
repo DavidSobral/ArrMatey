@@ -51,15 +51,6 @@ extension View {
 
     @ViewBuilder
     func glassCompatibleButtonStyle() -> some View {
-        if #available(iOS 26, *) {
-            applyGlassProminentStyle()
-        } else {
-            self
-        }
-    }
-
-    @available(iOS 26, *)
-    private func applyGlassProminentStyle() -> some View {
-        self.buttonStyle(.glassProminent)
+        self
     }
 }
