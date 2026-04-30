@@ -81,7 +81,7 @@ fun ArrConfigurationScreen(
     uiState: AddInstanceUiState,
     onApiEndpointChanged: (String) -> Unit,
     onApiKeyChanged: (String) -> Unit,
-    onBasicAuthEnabledChanged: (Boolean) -> Unit = {},
+    onNoApiKeyRequiredChanged: (Boolean) -> Unit = {},
     onInstanceLabelChanged: (String) -> Unit,
     onIsSlowInstanceChanged: (Boolean) -> Unit,
     onCustomTimeoutChanged: (Long?) -> Unit,
@@ -157,20 +157,20 @@ fun ArrConfigurationScreen(
         )
 
         LabelledCheckbox(
-            label = mokoString(MR.strings.use_basic_auth),
-            checked = uiState.basicAuthEnabled,
-            onCheckedChange = onBasicAuthEnabledChanged
+            label = mokoString(MR.strings.no_api_key),
+            checked = uiState.noApiKeyRequired,
+            onCheckedChange = onNoApiKeyRequiredChanged
         )
 
         AMOutlinedTextField(
             label = mokoString(MR.strings.api_key),
-            required = !uiState.basicAuthEnabled,
+            required = !uiState.noApiKeyRequired,
             value = apiKey,
             onValueChange = onApiKeyChanged,
             modifier = Modifier.fillMaxWidth(),
             placeholder = mokoString(MR.strings.api_key_placeholder),
             singleLine = true,
-            enabled = !uiState.basicAuthEnabled
+            enabled = !uiState.noApiKeyRequired
         )
 
         if (instanceType.supportsNotifications) {

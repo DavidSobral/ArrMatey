@@ -341,9 +341,9 @@ fun AddEditDownloadClientScreen(
                         }
 
                         LabelledCheckbox(
-                            label = mokoString(MR.strings.use_basic_auth),
-                            checked = uiState.basicAuthEnabled,
-                            onCheckedChange = { viewModel.updateBasicAuthEnabled(it) }
+                            label = mokoString(MR.strings.no_api_key),
+                            checked = uiState.noApiKeyRequired,
+                            onCheckedChange = { viewModel.updateNoApiKeyRequired(it) }
                         )
 
                         AMOutlinedTextField(
@@ -353,7 +353,7 @@ fun AddEditDownloadClientScreen(
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             placeholder = mokoString(MR.strings.api_key_placeholder),
-                            enabled = !uiState.basicAuthEnabled
+                            enabled = !uiState.noApiKeyRequired
                         )
                     }
                 }

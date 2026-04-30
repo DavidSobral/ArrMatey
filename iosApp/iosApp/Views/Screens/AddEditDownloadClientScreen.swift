@@ -161,14 +161,14 @@ struct AddEditDownloadClientScreen: View {
                 .textInputAutocapitalization(.never)
             }
             
-            Toggle(MR.strings().use_basic_auth.localized(), isOn: Binding(
-                get: { viewModel.uiState.basicAuthEnabled },
-                set: { viewModel.updateBasicAuthEnabled($0) }
+            Toggle(MR.strings().no_api_key.localized(), isOn: Binding(
+                get: { viewModel.uiState.noApiKeyRequired },
+                set: { viewModel.updateNoApiKeyRequired($0) }
             ))
             
             HStack(spacing: 24) {
                 Text(MR.strings().client_api_key.localized()).layoutPriority(2)
-                    .foregroundStyle(viewModel.uiState.basicAuthEnabled ? Color.primary.opacity(1.0) : Color.primary.opacity(0.3))
+                    .foregroundStyle(viewModel.uiState.noApiKeyRequired ? Color.primary.opacity(1.0) : Color.primary.opacity(0.3))
                 TextField(
                     text: Binding(
                         get: { viewModel.uiState.apiKey },
@@ -177,7 +177,7 @@ struct AddEditDownloadClientScreen: View {
                 ) {
                     EmptyView()
                 }
-                .disabled(viewModel.uiState.basicAuthEnabled)
+                .disabled(viewModel.uiState.noApiKeyRequired)
                 .multilineTextAlignment(.trailing)
                 .textInputAutocapitalization(.never)
             }

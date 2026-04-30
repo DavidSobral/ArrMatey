@@ -106,8 +106,8 @@ private val MIGRATION_7_8 = object: Migration(7, 8) {
 
 private val MIGRATION_8_9 = object: Migration(8, 9) {
     override fun migrate(connection: SQLiteConnection) {
-        connection.execSQL("ALTER TABLE instances ADD COLUMN basicAuthEnabled INTEGER NOT NULL DEFAULT 0")
-        connection.execSQL("ALTER TABLE download_clients ADD COLUMN basicAuthEnabled INTEGER NOT NULL DEFAULT 0")
+        connection.execSQL("ALTER TABLE instances ADD COLUMN noApiKeyRequired INTEGER NOT NULL DEFAULT 0")
+        connection.execSQL("ALTER TABLE download_clients ADD COLUMN noApiKeyRequired INTEGER NOT NULL DEFAULT 0")
     }
 }
 

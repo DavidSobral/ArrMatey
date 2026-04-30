@@ -12,7 +12,7 @@ class TestNewInstanceConnectionUseCase(
         apiKey: String,
         type: InstanceType,
         headers: List<InstanceHeader> = emptyList(),
-        basicAuthEnabled: Boolean = false
+        noApiKeyRequired: Boolean = false
     ): Boolean =
-        client.test(url.trim(), apiKey.trim(), type, headers, basicAuthEnabled)
+        client.test(url.trim(), apiKey.trim(), type, headers, noApiKeyRequired)
 }

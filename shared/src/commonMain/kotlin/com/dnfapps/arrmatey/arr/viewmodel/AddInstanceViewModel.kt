@@ -48,17 +48,17 @@ class AddInstanceViewModel(
     fun setApiKey(value: String) {
         _uiState.update {
             it.copy(
-                apiKey = if (it.basicAuthEnabled) "" else value,
+                apiKey = if (it.noApiKeyRequired) "" else value,
                 testing = false,
                 testResult = null
             ).validate()
         }
     }
 
-    fun setBasicAuthEnabled(enabled: Boolean) {
+    fun setNoApiKeyRequired(enabled: Boolean) {
         _uiState.update {
             it.copy(
-                basicAuthEnabled = enabled,
+                noApiKeyRequired = enabled,
                 apiKey = if (enabled) "" else it.apiKey,
                 testing = false,
                 testResult = null
@@ -132,7 +132,7 @@ class AddInstanceViewModel(
                 state.apiKey,
                 type,
                 state.headers,
-                state.basicAuthEnabled
+                state.noApiKeyRequired
             )
 
             _uiState.update {
@@ -174,7 +174,7 @@ class AddInstanceViewModel(
             label = s.instanceLabel,
             url = s.apiEndpoint,
             apiKey = s.apiKey,
-            basicAuthEnabled = s.basicAuthEnabled,
+            noApiKeyRequired = s.noApiKeyRequired,
             slowInstance = s.isSlowInstance,
             customTimeout = if (s.isSlowInstance) s.customTimeout else null,
             headers = s.headers.filter { it.key.isNotEmpty() && it.value.isNotEmpty() },
@@ -192,7 +192,7 @@ class AddInstanceViewModel(
     private fun AddInstanceUiState.validate(): AddInstanceUiState {
         val isValid = testResult == true &&
                 apiEndpoint.isNotEmpty() &&
-                (basicAuthEnabled || apiKey.isNotEmpty()) &&
+                (noApiKeyRequired || apiKey.isNotEmpty()) &&
                 instanceLabel.isNotEmpty() &&
                 (!localNetworkEnabled || (localNetworkUrl.isValidUrl() && localNetworkSsids.isNotEmpty())) &&
                 headers.all { it.restrictionType != HeaderRestrictionType.SpecificSsids || it.restrictedSsids.isNotEmpty() }

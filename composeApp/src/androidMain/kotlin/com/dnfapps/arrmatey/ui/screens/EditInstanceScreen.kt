@@ -138,7 +138,7 @@ fun EditInstanceScreen(
                     uiState = uiState,
                     onApiEndpointChanged = { viewModel.setApiEndpoint(it) },
                     onApiKeyChanged = { viewModel.setApiKey(it) },
-                    onBasicAuthEnabledChanged = { viewModel.setBasicAuthEnabled(it) },
+                    onNoApiKeyRequiredChanged = { viewModel.setNoApiKeyRequired(it) },
                     onInstanceLabelChanged = { viewModel.setInstanceLabel(it) },
                     onIsSlowInstanceChanged = { viewModel.setIsSlowInstance(it) },
                     onCustomTimeoutChanged = { viewModel.setCustomTimeout(it) },

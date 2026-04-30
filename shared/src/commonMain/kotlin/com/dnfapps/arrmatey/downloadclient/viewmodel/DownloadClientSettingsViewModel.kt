@@ -59,7 +59,7 @@ class DownloadClientSettingsViewModel(
                             username = client.username,
                             password = client.password,
                             apiKey = client.apiKey,
-                            basicAuthEnabled = client.basicAuthEnabled,
+                            noApiKeyRequired = client.noApiKeyRequired,
                             headers = client.headers,
                             enabled = client.enabled,
                             isEditing = true
@@ -82,7 +82,7 @@ class DownloadClientSettingsViewModel(
         _uiState.update {
             it.copy(
                 url = url,
-                saveButtonEnabled = url.isNotEmpty() && (it.basicAuthEnabled || it.apiKey.isNotEmpty())
+                saveButtonEnabled = url.isNotEmpty() && (it.noApiKeyRequired || it.apiKey.isNotEmpty())
             )
         }
     }
@@ -101,19 +101,19 @@ class DownloadClientSettingsViewModel(
 
     fun updateApiKey(apiKey: String) {
         _uiState.update {
-            val newApiKey = if (it.basicAuthEnabled) "" else apiKey
+            val newApiKey = if (it.noApiKeyRequired) "" else apiKey
             it.copy(
                 apiKey = newApiKey,
-                saveButtonEnabled = it.url.isNotEmpty() && (it.basicAuthEnabled || newApiKey.isNotEmpty())
+                saveButtonEnabled = it.url.isNotEmpty() && (it.noApiKeyRequired || newApiKey.isNotEmpty())
             )
         }
     }
 
-    fun updateBasicAuthEnabled(enabled: Boolean) {
+    fun updateNoApiKeyRequired(enabled: Boolean) {
         _uiState.update {
             val newApiKey = if (enabled) "" else it.apiKey
             it.copy(
-                basicAuthEnabled = enabled,
+                noApiKeyRequired = enabled,
                 apiKey = newApiKey,
                 saveButtonEnabled = it.url.isNotEmpty() && (enabled || newApiKey.isNotEmpty())
             )
@@ -161,7 +161,7 @@ class DownloadClientSettingsViewModel(
             username = uiState.value.username,
             password = uiState.value.password,
             apiKey = uiState.value.apiKey,
-            basicAuthEnabled = uiState.value.basicAuthEnabled,
+            noApiKeyRequired = uiState.value.noApiKeyRequired,
             headers = uiState.value.headers.filter { it.key.isNotEmpty() && it.value.isNotEmpty() },
             enabled = uiState.value.enabled,
             selected = downloadClient.value?.selected ?: false
