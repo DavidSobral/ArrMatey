@@ -18,7 +18,18 @@ data class DownloadClientConfigurationUiState(
     val isTesting: Boolean = false,
     val endpointError: Boolean = false,
     val connectionState: OperationStatus = OperationStatus.Idle,
-    val mutationState: DownloadClientMutationState = DownloadClientMutationState.Initial
+    val mutationState: DownloadClientMutationState = DownloadClientMutationState.Initial,
+
+    val localNetworkEnabled: Boolean = false,
+    val localNetworkSsids: List<String> = emptyList(),
+    val localNetworkEndpoint: String = "",
+    val localNetworkEndpointError: Boolean = false,
+    val localTesting: Boolean = false,
+    val localTestResult: Boolean? = null,
+    val testResult: Boolean? = null
 ) {
+    val localNetworkConfigured: Boolean
+        get() = localNetworkEnabled && localNetworkSsids.isNotEmpty() && localNetworkEndpoint.isNotBlank()
+
     constructor(): this(label = "") // ios overload
 }

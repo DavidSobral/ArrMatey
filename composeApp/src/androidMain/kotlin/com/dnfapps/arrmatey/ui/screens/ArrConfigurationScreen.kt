@@ -191,7 +191,7 @@ fun ArrConfigurationScreen(
         }
 
         LocalNetworkArea(
-            instanceType,
+            defaultPort = instanceType.defaultPort,
             uiState,
             onLocalNetworkEnabledChanged,
             onLocalNetworkUrlChanged,
@@ -555,7 +555,7 @@ fun CustomHeaderSection(
 
 @Composable
 fun LocalNetworkArea(
-    instanceType: InstanceType,
+    defaultPort: Int,
     uiState: AddInstanceUiState,
     onLocalNetworkEnabledChanged: (Boolean) -> Unit,
     onLocalNetworkUrlChanged: (String) -> Unit,
@@ -624,7 +624,7 @@ fun LocalNetworkArea(
                         onValueChange = onLocalNetworkUrlChanged,
                         modifier = Modifier.fillMaxWidth(),
                         label = mokoString(MR.strings.local_network_url),
-                        placeholder = "http://192.168.1.100:${instanceType.defaultPort}",
+                        placeholder = "http://192.168.1.100:${defaultPort}",
                         enabled = uiState.localNetworkEnabled,
                         singleLine = true,
                         isError = uiState.localNetworkUrlError,

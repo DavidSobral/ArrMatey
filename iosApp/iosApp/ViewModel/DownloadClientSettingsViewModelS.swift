@@ -59,9 +59,25 @@ class DownloadClientSettingsViewModelS: ObservableObject {
     func updateHeadrs(_ headers: [InstanceHeader]) {
         viewModel.updateHeaders(headers: headers)
     }
-    
-    func updateEnabled(_ enabled: Bool) {
-        viewModel.updateEnabled(enabled: enabled)
+
+    func updateLocalNetworkEnabled(_ enabled: Bool) {
+        viewModel.updateLocalNetworkEnabled(enabled: enabled)
+    }
+
+    func updateLocalNetworkUrl(_ url: String) {
+        viewModel.updateLocalNetworkUrl(url: url)
+    }
+
+    func updateLocalNetworkSsids(_ ssids: [String]) {
+        viewModel.updateLocalNetworkSsid(ssids: ssids)
+    }
+
+    func testConnection() {
+        viewModel.testConnection()
+    }
+
+    func testLocalConnection() {
+        viewModel.testLocalConnection()
     }
     
     func deleteClient() {

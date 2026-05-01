@@ -123,7 +123,7 @@ class HttpClientFactory(private val json: Json, private val logger: Logger) {
             }
 
             defaultRequest {
-                url(downloadClient.url.trimEnd('/') + "/")
+                url(downloadClient.getEffectiveBaseUrl().trimEnd('/') + "/")
                 if (!url.user.isNullOrBlank() && !url.password.isNullOrBlank()) {
                     basicAuth(url.user!!, url.password!!)
                     url.user = null
@@ -132,8 +132,19 @@ class HttpClientFactory(private val json: Json, private val logger: Logger) {
                 if (!downloadClient.noApiKeyRequired && downloadClient.apiKey.isNotEmpty()) {
                     header(HEADER_X_API_KEY, downloadClient.apiKey)
                 }
-                downloadClient.headers.forEach { (key, value) ->
-                    header(key, value)
+                downloadClient.headers.forEach { header ->
+                    val shouldSend = when (header.restrictionType) {
+                        HeaderRestrictionType.Always -> true
+                        HeaderRestrictionType.RemoteOnly -> !downloadClient.isUsingLocalNetwork()
+                        HeaderRestrictionType.SpecificSsids -> {
+                            val currentSsid = getNetworkUtils().getCurrentWifiSsid()
+                            currentSsid != null && header.restrictedSsids.contains(currentSsid)
+                        }
+                    }
+
+                    if (shouldSend) {
+                        header(header.key, header.value)
+                    }
                 }
             }
         }
