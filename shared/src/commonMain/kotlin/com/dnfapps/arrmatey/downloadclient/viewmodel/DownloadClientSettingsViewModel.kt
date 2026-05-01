@@ -61,7 +61,6 @@ class DownloadClientSettingsViewModel(
                             apiKey = client.apiKey,
                             noApiKeyRequired = client.noApiKeyRequired,
                             headers = client.headers,
-                            enabled = client.enabled,
                             isEditing = true
                         )
                     }
@@ -82,20 +81,32 @@ class DownloadClientSettingsViewModel(
         _uiState.update {
             it.copy(
                 url = url,
-                saveButtonEnabled = url.isNotEmpty() && (it.noApiKeyRequired || it.apiKey.isNotEmpty())
+                saveButtonEnabled = url.isNotEmpty() &&
+                        (it.noApiKeyRequired || it.apiKey.isNotEmpty()
+                                || (it.username.isNotEmpty() && it.password.isNotEmpty()))
             )
         }
     }
 
     fun updateUsername(username: String) {
         _uiState.update {
-            it.copy(username = username)
+            it.copy(
+                username = username,
+                saveButtonEnabled = it.url.isNotEmpty() &&
+                        (it.noApiKeyRequired || it.apiKey.isNotEmpty()
+                                || (username.isNotEmpty() && it.password.isNotEmpty()))
+            )
         }
     }
 
     fun updatePassword(password: String) {
         _uiState.update {
-            it.copy(password = password)
+            it.copy(
+                password = password,
+                saveButtonEnabled = it.url.isNotEmpty() &&
+                        (it.noApiKeyRequired || it.apiKey.isNotEmpty()
+                                || (it.username.isNotEmpty() && password.isNotEmpty()))
+            )
         }
     }
 
@@ -104,7 +115,9 @@ class DownloadClientSettingsViewModel(
             val newApiKey = if (it.noApiKeyRequired) "" else apiKey
             it.copy(
                 apiKey = newApiKey,
-                saveButtonEnabled = it.url.isNotEmpty() && (it.noApiKeyRequired || newApiKey.isNotEmpty())
+                saveButtonEnabled = it.url.isNotEmpty() &&
+                        (it.noApiKeyRequired || newApiKey.isNotEmpty()
+                                || (!it.username.isNotEmpty() && !it.password.isNotEmpty()))
             )
         }
     }
@@ -112,20 +125,22 @@ class DownloadClientSettingsViewModel(
     fun updateNoApiKeyRequired(enabled: Boolean) {
         _uiState.update {
             val newApiKey = if (enabled) "" else it.apiKey
+            val newUsername = if (enabled) "" else it.username
+            val newPassword = if (enabled) "" else it.password
             it.copy(
                 noApiKeyRequired = enabled,
                 apiKey = newApiKey,
-                saveButtonEnabled = it.url.isNotEmpty() && (enabled || newApiKey.isNotEmpty())
+                username = newUsername,
+                password = newPassword,
+                saveButtonEnabled = it.url.isNotEmpty() &&
+                        (enabled || newApiKey.isNotEmpty()
+                                || (!newUsername.isNotEmpty() && !newPassword.isNotEmpty()))
             )
         }
     }
 
     fun updateHeaders(headers: List<InstanceHeader>) {
         _uiState.update { it.copy(headers = headers) }
-    }
-
-    fun updateEnabled(enabled: Boolean) {
-        _uiState.update { it.copy(enabled = enabled) }
     }
 
     fun deleteClient() {
@@ -163,7 +178,6 @@ class DownloadClientSettingsViewModel(
             apiKey = uiState.value.apiKey,
             noApiKeyRequired = uiState.value.noApiKeyRequired,
             headers = uiState.value.headers.filter { it.key.isNotEmpty() && it.value.isNotEmpty() },
-            enabled = uiState.value.enabled,
             selected = downloadClient.value?.selected ?: false
         )
 

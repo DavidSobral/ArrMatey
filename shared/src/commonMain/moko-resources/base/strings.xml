@@ -243,6 +243,7 @@
     <string name="description">Description</string>
     <string name="search_on_add_label">Search for files immediately</string>
     <string name="no_api_key">This instance doesn't require an API key</string>
+    <string name="no_auth_required">No authentication required</string>
     <string name="message">Message</string>
     <string name="type">Type</string>
 

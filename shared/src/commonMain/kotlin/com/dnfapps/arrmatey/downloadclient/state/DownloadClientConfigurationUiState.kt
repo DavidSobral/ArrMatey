@@ -12,7 +12,6 @@ data class DownloadClientConfigurationUiState(
     val password: String = "",
     val apiKey: String = "",
     val noApiKeyRequired: Boolean = false,
-    val enabled: Boolean = true,
     val headers: List<InstanceHeader> = emptyList(),
     val isEditing: Boolean = false,
     val saveButtonEnabled: Boolean = false,

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "2a3e97f769a1731a15edfda6438a6e5b",
+    "identityHash": "d81b813074ac96ed41b633fa655cfd5d",
     "entities": [
       {
         "tableName": "instances",
@@ -126,7 +126,7 @@
       },
       {
         "tableName": "download_clients",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` TEXT NOT NULL, `label` TEXT NOT NULL, `url` TEXT NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `apiKey` TEXT NOT NULL, `basicAuthEnabled` INTEGER NOT NULL, `enabled` INTEGER NOT NULL, `selected` INTEGER NOT NULL, `headers` TEXT NOT NULL, `localNetworkEnabled` INTEGER NOT NULL, `localNetworkSsids` TEXT NOT NULL, `localNetworkEndpoint` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` TEXT NOT NULL, `label` TEXT NOT NULL, `url` TEXT NOT NULL, `username` TEXT NOT NULL, `password` TEXT NOT NULL, `apiKey` TEXT NOT NULL, `noApiKeyRequired` INTEGER NOT NULL, `selected` INTEGER NOT NULL, `headers` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -171,14 +171,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "basicAuthEnabled",
-            "columnName": "basicAuthEnabled",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "enabled",
-            "columnName": "enabled",
+            "fieldPath": "noApiKeyRequired",
+            "columnName": "noApiKeyRequired",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -193,23 +187,6 @@
             "columnName": "headers",
             "affinity": "TEXT",
             "notNull": true
-          },
-          {
-            "fieldPath": "localNetworkEnabled",
-            "columnName": "localNetworkEnabled",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "localNetworkSsids",
-            "columnName": "localNetworkSsids",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "localNetworkEndpoint",
-            "columnName": "localNetworkEndpoint",
-            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -278,7 +255,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2a3e97f769a1731a15edfda6438a6e5b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd81b813074ac96ed41b633fa655cfd5d')"
     ]
   }
 }

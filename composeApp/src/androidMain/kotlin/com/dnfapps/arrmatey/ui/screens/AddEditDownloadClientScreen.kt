@@ -65,7 +65,6 @@ import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.ui.components.AMOutlinedTextField
 import com.dnfapps.arrmatey.ui.components.DropdownPicker
 import com.dnfapps.arrmatey.ui.components.LabelledCheckbox
-import com.dnfapps.arrmatey.ui.components.LabelledSwitch
 import com.dnfapps.arrmatey.ui.components.navigation.BackButton
 import com.dnfapps.arrmatey.utils.koinInjectParams
 import com.dnfapps.arrmatey.utils.mokoString
@@ -274,7 +273,7 @@ fun AddEditDownloadClientScreen(
                 Card(
                     shape = MaterialTheme.shapes.large,
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -293,12 +292,19 @@ fun AddEditDownloadClientScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
+                        LabelledCheckbox(
+                            label = mokoString(MR.strings.no_auth_required),
+                            checked = uiState.noApiKeyRequired,
+                            onCheckedChange = { viewModel.updateNoApiKeyRequired(it) }
+                        )
+
                         AMOutlinedTextField(
                             value = uiState.username,
                             onValueChange = { viewModel.updateUsername(it) },
                             label = mokoString(MR.strings.client_username),
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            singleLine = true,
+                            enabled = !uiState.noApiKeyRequired
                         )
 
                         var showPassword by remember { mutableStateOf(false) }
@@ -324,7 +330,8 @@ fun AddEditDownloadClientScreen(
                                         Icon(Icons.Default.VisibilityOff, null)
                                     }
                                 }
-                            }
+                            },
+                            enabled = !uiState.noApiKeyRequired
                         )
 
                         Row(
@@ -339,12 +346,6 @@ fun AddEditDownloadClientScreen(
                             )
                             HorizontalDivider(Modifier.weight(1f))
                         }
-
-                        LabelledCheckbox(
-                            label = mokoString(MR.strings.no_api_key),
-                            checked = uiState.noApiKeyRequired,
-                            onCheckedChange = { viewModel.updateNoApiKeyRequired(it) }
-                        )
 
                         AMOutlinedTextField(
                             value = uiState.apiKey,
@@ -362,21 +363,6 @@ fun AddEditDownloadClientScreen(
                     headers = uiState.headers,
                     onHeadersChanged = { viewModel.updateHeaders(it) }
                 )
-
-                Card(
-                    shape = MaterialTheme.shapes.large,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    LabelledSwitch(
-                        label = mokoString(MR.strings.client_enabled),
-                        checked = uiState.enabled,
-                        onCheckedChange = { viewModel.updateEnabled(it) },
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
             }
         }
 

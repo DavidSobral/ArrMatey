@@ -21,7 +21,6 @@ data class DownloadClient(
     val password: String = "",
     val apiKey: String = "",
     val noApiKeyRequired: Boolean = false,
-    val enabled: Boolean = true,
     val selected: Boolean = false,
     val headers: List<InstanceHeader> = emptyList()
 )
