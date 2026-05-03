@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -17,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dnfapps.arrmatey.arr.api.model.ArrMedia
 import com.dnfapps.arrmatey.arr.api.model.Arrtist
+import com.dnfapps.arrmatey.arr.api.model.Author
 import com.dnfapps.arrmatey.entensions.Bullet
 import com.dnfapps.arrmatey.extensions.formatAsRuntime
 import com.dnfapps.arrmatey.instances.model.InstanceType
@@ -45,7 +47,8 @@ fun DetailsHeader(
                 .fillMaxWidth()
                 .padding(top = 170.dp)
                 .padding(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(24.dp)
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            verticalAlignment = Alignment.Bottom
         ) {
             PosterItem(
                 item = item,
@@ -57,7 +60,7 @@ fun DetailsHeader(
             ) {
                 ClearLogo(item)
 
-                if (item !is Arrtist) {
+                if (item !is Arrtist && item !is Author) {
                     Text(
                         text = listOfNotNull(
                             item.year,

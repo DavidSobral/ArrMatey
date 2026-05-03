@@ -17,6 +17,10 @@ sealed class CommandPayload(val name: String) {
     @Serializable
     data class Album(val albumIds: List<Long>): CommandPayload("AlbumSearch")
     @Serializable
+    data class Author(val authorId: Long): CommandPayload("AuthorSearch")
+    @Serializable
+    data class Book(val bookIds: List<Long>): CommandPayload("BookSearch")
+    @Serializable
     data class RefreshSeries(val seriesId: Long): CommandPayload("RefreshSeries")
     @Serializable
     data class RefreshMovie(val movieIds: List<Long>): CommandPayload("RefreshMovie")

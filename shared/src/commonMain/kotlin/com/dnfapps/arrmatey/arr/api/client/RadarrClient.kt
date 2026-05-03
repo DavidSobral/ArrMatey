@@ -4,6 +4,7 @@ import com.dnfapps.arrmatey.arr.api.model.ApplyTags
 import com.dnfapps.arrmatey.arr.api.model.ArrAlbum
 import com.dnfapps.arrmatey.arr.api.model.ArrMedia
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
+import com.dnfapps.arrmatey.arr.api.model.Book
 import com.dnfapps.arrmatey.arr.api.model.CommandPayload
 import com.dnfapps.arrmatey.arr.api.model.CommandResponse
 import com.dnfapps.arrmatey.arr.api.model.Episode
@@ -102,7 +103,8 @@ class RadarrClient(
     override suspend fun getItemHistory(
         id: Long,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
+        altId: Long?
     ): NetworkResult<List<RadarrHistoryItem>> =
         get("history/movie", mapOf(
             "page" to page,
@@ -132,6 +134,11 @@ class RadarrClient(
         start: LocalDate,
         end: LocalDate
     ): NetworkResult<List<ArrAlbum>> = NetworkResult.Success(emptyList())
+
+    override suspend fun getBookCalendar(
+        start: LocalDate,
+        end: LocalDate
+    ): NetworkResult<List<Book>> = NetworkResult.Success(emptyList())
 
     suspend fun getMovieExtraFile(id: Long): NetworkResult<List<ExtraFile>> =
         get("extrafile", mapOf("movieId" to id))

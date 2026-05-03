@@ -5,6 +5,8 @@ import com.dnfapps.arrmatey.arr.api.model.ArrMedia
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
 import com.dnfapps.arrmatey.arr.api.model.ArrSeries
 import com.dnfapps.arrmatey.arr.api.model.Arrtist
+import com.dnfapps.arrmatey.arr.api.model.Author
+import com.dnfapps.arrmatey.arr.api.model.Book
 import com.dnfapps.arrmatey.arr.api.model.Episode
 import com.dnfapps.arrmatey.client.NetworkResult
 import com.dnfapps.arrmatey.instances.repository.ArrInstanceRepository
@@ -18,6 +20,7 @@ class ToggleMonitorUseCase {
             is ArrSeries -> item.copy(monitored = !item.monitored)
             is ArrMovie -> item.copy(monitored = !item.monitored)
             is Arrtist -> item.copy(monitored = !item.monitored)
+            is Author -> item.copy(monitored = !item.monitored)
         }
         return repository.updateMediaItem(updatedItem)
     }
@@ -42,5 +45,12 @@ class ToggleMonitorUseCase {
         repository: ArrInstanceRepository
     ): NetworkResult<ArrAlbum> {
         return repository.toggleAlbumMonitor(album)
+    }
+
+    suspend fun toggleBook(
+        book: Book,
+        repository: ArrInstanceRepository
+    ): NetworkResult<Book> {
+        return repository.toggleBookMonitor(book)
     }
 }

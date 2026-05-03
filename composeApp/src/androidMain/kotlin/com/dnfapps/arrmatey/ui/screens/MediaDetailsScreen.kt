@@ -57,6 +57,8 @@ import com.dnfapps.arrmatey.arr.api.model.ArrMovie
 import com.dnfapps.arrmatey.arr.api.model.ArrSeries
 import com.dnfapps.arrmatey.arr.api.model.Arrtist
 import com.dnfapps.arrmatey.arr.api.model.ArtistMonitorType
+import com.dnfapps.arrmatey.arr.api.model.Author
+import com.dnfapps.arrmatey.arr.api.model.AuthorMonitorType
 import com.dnfapps.arrmatey.arr.api.model.MonitorNewItems
 import com.dnfapps.arrmatey.arr.api.model.QualityProfile
 import com.dnfapps.arrmatey.arr.api.model.RootFolder
@@ -74,6 +76,7 @@ import com.dnfapps.arrmatey.navigation.Navigation
 import com.dnfapps.arrmatey.navigation.NavigationManager
 import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.ui.components.AlbumsArea
+import com.dnfapps.arrmatey.ui.components.BooksArea
 import com.dnfapps.arrmatey.ui.components.DetailsHeader
 import com.dnfapps.arrmatey.ui.components.InfoArea
 import com.dnfapps.arrmatey.ui.components.ItemDescriptionCard
@@ -83,6 +86,7 @@ import com.dnfapps.arrmatey.ui.components.OverlayTopAppBar
 import com.dnfapps.arrmatey.ui.components.SeasonsArea
 import com.dnfapps.arrmatey.ui.components.UpcomingDateView
 import com.dnfapps.arrmatey.ui.sheets.EditArtistSheet
+import com.dnfapps.arrmatey.ui.sheets.EditAuthorSheet
 import com.dnfapps.arrmatey.ui.sheets.EditMovieSheet
 import com.dnfapps.arrmatey.ui.sheets.EditSeriesSheet
 import com.dnfapps.arrmatey.utils.format
@@ -159,7 +163,49 @@ fun MediaDetailsScreen(
         }
     }
 
-    Scaffold { paddingValues ->
+    Scaffold(
+        topBar = {
+            OverlayTopAppBar(
+                scrollState = scrollState,
+                navigationIcon = {
+                    IconButton(
+                        onClick = { navigation.popBackStack() },
+                        colors = IconButtonDefaults.headerBarColors()
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = mokoString(MR.strings.back)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            mediaDetailsViewModel.toggleMonitored()
+                        },
+                        colors = IconButtonDefaults.headerBarColors()
+                    ) {
+                        Icon(
+                            imageVector = if (isMonitored) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                            contentDescription = null
+                        )
+                    }
+                    MenuButton(
+                        onEdit = { showEditSheet = true },
+                        onDelete = { confirmDelete = true },
+                        onRefresh = {
+                            mediaDetailsViewModel.performRefresh()
+                        },
+                        showSearch = type.includeTopLevelAutomaticSearchOption,
+                        enableSearch = isMonitored,
+                        onSearchMonitored = {
+                            mediaDetailsViewModel.performAutomaticLookup()
+                        }
+                    )
+                }
+            )
+        }
+    ) { paddingValues ->
         Box(
             modifier = Modifier
                 .padding(paddingValues.copy(bottom = 0.dp, top = 0.dp))
@@ -190,7 +236,7 @@ fun MediaDetailsScreen(
                             DetailsHeader(item, type)
 
                             Column(
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp),
+                                modifier = Modifier.padding(horizontal = 24.dp).padding(bottom = 24.dp),
                                 verticalArrangement = Arrangement.spacedBy(24.dp)
                             ) {
                                 UpcomingDateView(item)
@@ -246,12 +292,29 @@ fun MediaDetailsScreen(
                                         },
                                         albumDeleteInProgress = albumDeleteStatus is OperationStatus.InProgress,
                                     )
+                                    is Author -> BooksArea(
+                                        author = item,
+                                        series = state.bookSeries,
+                                        files = state.bookFiles,
+                                        books = state.books,
+                                        searchIds = automaticSearchIds,
+                                        onToggleMonitor = { book ->
+                                            mediaDetailsViewModel.toggleBookMonitored(book)
+                                        },
+                                        onToggleSeriesMonitor = { books ->
+                                            mediaDetailsViewModel.toggleBookSeriesMonitored(books)
+                                        },
+                                        onAutomaticSearch = { bookId ->
+                                            mediaDetailsViewModel.performBookAutomaticLookup(bookId)
+                                        }
+                                    )
                                 }
 
                                 val infoItems = when (item) {
                                     is ArrSeries -> seriesInfo(item, qualityProfiles, tags)
                                     is ArrMovie -> movieInfo(item, qualityProfiles, tags)
                                     is Arrtist -> artistInfo(item, qualityProfiles, tags)
+                                    is Author -> authorInfo(item, qualityProfiles, tags)
                                 }.toInfoList()
                                 InfoArea(infoItems)
                             }
@@ -259,47 +322,6 @@ fun MediaDetailsScreen(
                     }
                 }
             }
-
-            OverlayTopAppBar(
-                scrollState = scrollState,
-                modifier = Modifier.align(Alignment.TopCenter),
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navigation.popBackStack() },
-                        colors = IconButtonDefaults.headerBarColors()
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = mokoString(MR.strings.back)
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            mediaDetailsViewModel.toggleMonitored()
-                        },
-                        colors = IconButtonDefaults.headerBarColors()
-                    ) {
-                        Icon(
-                            imageVector = if (isMonitored) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                            contentDescription = null
-                        )
-                    }
-                    MenuButton(
-                        onEdit = { showEditSheet = true },
-                        onDelete = { confirmDelete = true },
-                        onRefresh = {
-                            mediaDetailsViewModel.performRefresh()
-                        },
-                        showSearch = type.includeTopLevelAutomaticSearchOption,
-                        enableSearch = isMonitored,
-                        onSearchMonitored = {
-                            mediaDetailsViewModel.performAutomaticLookup()
-                        }
-                    )
-                }
-            )
 
             if (confirmDelete) {
                 ConfirmDeleteAlert(
@@ -511,6 +533,15 @@ private fun EditMediaSheet(
             onEditItem = onEditItem,
             onDismiss = onDismiss
         )
+        is Author -> EditAuthorSheet(
+            item = item,
+            qualityProfiles = qualityProfiles,
+            rootFolders = rootFolders,
+            tags = tags,
+            editInProgress = editInProgress,
+            onEditItem = onEditItem,
+            onDismiss = onDismiss
+        )
     }
 }
 
@@ -576,6 +607,7 @@ private fun MenuButton(
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(MenuDefaults.GroupSpacing))
             DropdownMenuGroup(
                 shapes = MenuDefaults.groupShape(1, 2),
                 interactionSource = interactionSource
@@ -707,6 +739,35 @@ private fun artistInfo(
         put(mokoString(MR.strings.root_folder), rootFolderPathValue)
         put(mokoString(MR.strings.path), (artist.path ?: unknown))
         put(mokoString(MR.strings.new_albums), monitorLabel)
+        put(mokoString(MR.strings.quality_profile), (qualityProfile?.name ?: unknown))
+        put(mokoString(MR.strings.tags), tagsLabel)
+    }
+}
+
+@Composable
+private fun authorInfo(
+    author: Author,
+    qualityProfiles: List<QualityProfile>,
+    tags: List<Tag>
+): Map<String, String> {
+    val qualityProfile = qualityProfiles.firstOrNull { it.id == author.qualityProfileId }
+    val tagsLabel = author.formatTags(tags) ?: mokoString(MR.strings.none)
+
+    val unknown = mokoString(MR.strings.unknown)
+    val monitorLabel = if (author.monitorNewItems == AuthorMonitorType.All) {
+        mokoString(MR.strings.monitored)
+    } else { mokoString(MR.strings.unmonitored) }
+
+    val rootFolderPathValue = author.rootFolderPath?.takeUnless { it.isBlank() }
+        ?: mokoString(MR.strings.unknown)
+
+    val diskSize = author.fileSize.bytesAsFileSizeString()
+
+    return buildMap {
+        put(mokoString(MR.strings.size_on_disk), diskSize)
+        put(mokoString(MR.strings.root_folder), rootFolderPathValue)
+        put(mokoString(MR.strings.path), (author.path ?: unknown))
+        put(mokoString(MR.strings.new_books), monitorLabel)
         put(mokoString(MR.strings.quality_profile), (qualityProfile?.name ?: unknown))
         put(mokoString(MR.strings.tags), tagsLabel)
     }
