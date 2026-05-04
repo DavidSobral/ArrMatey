@@ -26,8 +26,8 @@ struct BooksArea: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Picker("", selection: $selectedTab) {
-                    Text("Books (\(books.count))").tag(0)
-                    Text("Series (\(series.count))").tag(1)
+                    Text(MR.strings().books_area_books_tab.formatted(args: [books.count])).tag(0)
+                    Text(MR.strings().books_area_series_tab.formatted(args: [series.count])).tag(0)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()

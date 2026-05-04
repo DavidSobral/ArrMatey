@@ -100,12 +100,12 @@ fun BooksArea(
                 Tab(
                     selected = selectedTabIndex == 0,
                     onClick = { selectedTabIndex = 0 },
-                    text = { Text("Books (${books.size})") }
+                    text = { Text(mokoString(MR.strings.books_area_books_tab, books.size)) }
                 )
                 Tab(
                     selected = selectedTabIndex == 1,
                     onClick = { selectedTabIndex = 1 },
-                    text = { Text("Series (${series.size})") }
+                    text = { Text(mokoString(MR.strings.books_area_series_tab, series.size)) }
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
