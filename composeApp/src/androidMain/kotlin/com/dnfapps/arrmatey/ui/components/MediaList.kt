@@ -1,34 +1,39 @@
 package com.dnfapps.arrmatey.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,29 +46,40 @@ import com.dnfapps.arrmatey.arr.api.model.ArrSeries
 import com.dnfapps.arrmatey.arr.api.model.Arrtist
 import com.dnfapps.arrmatey.arr.api.model.Author
 import com.dnfapps.arrmatey.arr.api.model.MediaStatus
+import com.dnfapps.arrmatey.arr.api.model.MockMedia
 import com.dnfapps.arrmatey.compose.utils.bytesAsFileSizeString
 import com.dnfapps.arrmatey.entensions.Bullet
 import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.ui.helpers.rememberRemoteImageData
+import com.dnfapps.arrmatey.ui.theme.ArrBlue
 import com.dnfapps.arrmatey.ui.theme.ArrPurple
 import com.dnfapps.arrmatey.ui.theme.TranslucentBlack
 import com.dnfapps.arrmatey.utils.AspectRatio
+import com.dnfapps.arrmatey.utils.Blur
+import com.dnfapps.arrmatey.utils.PosterElevation
+import com.dnfapps.arrmatey.utils.PosterRadius
 import com.dnfapps.arrmatey.utils.format
 import com.dnfapps.arrmatey.utils.mokoPlural
 import com.dnfapps.arrmatey.utils.mokoString
 import com.skydoves.cloudy.cloudy
+import dev.icerock.moko.resources.StringResource
 import kotlin.time.ExperimentalTime
 
 private val defaultHeight = 100.dp
 
 @Composable
-fun <T: ArrMedia> MediaList(
+fun <T : ArrMedia> MediaList(
     aspectRatio: AspectRatio,
     items: List<T>,
     onItemClick: (T) -> Unit,
     itemIsActive: (T) -> Boolean,
     modifier: Modifier = Modifier,
-    userScrollEnabled: Boolean = true
+    userScrollEnabled: Boolean = true,
+    showBannerBackground: Boolean = true,
+    includeOverview: Boolean = false,
+    blur: Blur = Blur.Normal,
+    posterElevation: PosterElevation = PosterElevation.Medium,
+    posterRadius: PosterRadius = PosterRadius.Medium
 ) {
     LazyColumn(
         modifier = modifier,
@@ -73,68 +89,141 @@ fun <T: ArrMedia> MediaList(
     ) {
         items(items) { item ->
             val isActive = itemIsActive(item)
-            MediaItem(aspectRatio, item, onItemClick, isActive)
+            MediaItem(
+                aspectRatio = aspectRatio,
+                item = item,
+                onItemClick = onItemClick,
+                isActive = isActive,
+                showBannerBackground = showBannerBackground,
+                includeOverview = includeOverview,
+                blur = blur,
+                posterElevation = posterElevation,
+                posterRadius = posterRadius
+            )
         }
     }
 }
 
 @Composable
-fun <T: ArrMedia> MediaItem(
+fun <T : ArrMedia> MediaItem(
     aspectRatio: AspectRatio,
     item: T,
     onItemClick: (T) -> Unit,
-    isActive: Boolean = false
+    isActive: Boolean = false,
+    showBannerBackground: Boolean = true,
+    includeOverview: Boolean = false,
+    posterModel: Any? = null,
+    bannerModel: Any? = null,
+    blur: Blur = Blur.Normal,
+    posterElevation: PosterElevation = PosterElevation.Medium,
+    posterRadius: PosterRadius = PosterRadius.Medium
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {
-                onItemClick(item)
-            },
+            .wrapContentHeight()
+            .clickable { onItemClick(item) },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            BannerView(
-                bannerUrl = item.getBanner()?.remoteUrl,
-                modifier = Modifier.matchParentSize()
-            )
-            Box(modifier = Modifier.matchParentSize().background(TranslucentBlack))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(18.dp),
-                modifier = Modifier
-                    .padding(12.dp)
-                    .fillMaxWidth()
-            ) {
-                PosterItem(
-                    item = item,
-                    aspectRatio = aspectRatio,
-                    modifier = Modifier
-                        .height(defaultHeight)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+        ) {
+            if (showBannerBackground) {
+                BannerView(
+                    blur = blur,
+                    bannerModel = bannerModel ?: item.getBanner()?.remoteUrl?.let {
+                        rememberRemoteImageData(it)
+                    },
+                    modifier = Modifier.matchParentSize()
                 )
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(TranslucentBlack)
+                )
+            }
 
-                Column(
-                    modifier = Modifier.defaultMinSize(minHeight = defaultHeight)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(18.dp),
+                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                ) {
+                    PosterItem(
+                        item = item,
+                        aspectRatio = aspectRatio,
+                        modifier = Modifier.height(defaultHeight),
+                        posterModel = posterModel,
+                        elevation = posterElevation,
+                        radius = posterRadius
+                    )
+
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .wrapContentHeight(),
+                        verticalArrangement = Arrangement.Top
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            val titleColor =
+                                if (showBannerBackground) Color.White else MaterialTheme.colorScheme.onSurface
+                            Text(
+                                text = buildString {
+                                    append(item.title ?: mokoString(MR.strings.unknown))
+                                    item.year?.let { year ->
+                                        item.title?.contains("$year")?.let {
+                                            if (!it) append(" ($year)")
+                                        }
+                                    }
+                                },
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = titleColor,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+                            item.id?.let {
+                                Icon(
+                                    imageVector = if (item.monitored) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                    contentDescription = null,
+                                    tint = titleColor
+                                )
+                            }
+                        }
+                        MediaDetails(item, isActive, showBannerBackground)
+                    }
+                }
+
+                AnimatedVisibility(
+                    visible = includeOverview && item.overview != null,
+                    enter = expandVertically(),
+                    exit = shrinkVertically()
                 ) {
                     Text(
-                        text = buildString {
-                            append(item.title ?: mokoString(MR.strings.unknown))
-                            item.year?.let { year ->
-                                item.title?.contains("$year")?.let {
-                                    if (!it) {
-                                        append(" ($year)")
-                                    }
-                                }
-                            }
-                        },
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        text = item.overview!!,
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp)
+                            .padding(bottom = 12.dp),
+                        fontSize = 14.sp,
+                        lineHeight = 16.sp,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis,
+                        color = if (showBannerBackground) Color.White.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    MediaDetails(item, isActive)
                 }
             }
         }
@@ -142,45 +231,73 @@ fun <T: ArrMedia> MediaItem(
 }
 
 @Composable
-private fun ColumnScope.MediaDetails(item: ArrMedia, isActive: Boolean) {
+private fun MediaDetails(
+    item: ArrMedia,
+    isActive: Boolean,
+    showBannerBackground: Boolean
+) {
     when (item) {
-        is ArrSeries -> SeriesDetails(item, isActive)
-        is ArrMovie -> MovieDetails(item, isActive)
-        is Arrtist -> ArtistDetails(item, isActive)
-        is Author -> AuthorDetails(item, isActive)
+        is ArrSeries -> SeriesDetails(item, isActive, showBannerBackground)
+        is ArrMovie -> MovieDetails(item, isActive, showBannerBackground)
+        is Arrtist -> ArtistDetails(item, isActive, showBannerBackground)
+        is Author -> AuthorDetails(item, isActive, showBannerBackground)
+        is MockMedia -> MockDetails(item, showBannerBackground)
     }
+}
+
+@Composable
+private fun MockDetails(
+    item: MockMedia,
+    showBannerBackground: Boolean
+) {
+    val contentColor =
+        if (showBannerBackground) Color.White else MaterialTheme.colorScheme.onSurface
+    Text(item.detailString, color = contentColor, fontSize = 14.sp, lineHeight = 18.sp)
+    Text("Status: ${item.statusString}", color = contentColor, fontSize = 14.sp, lineHeight = 18.sp)
+    LinearProgressIndicator(
+        progress = { item.statusProgress },
+        modifier = Modifier
+            .padding(top = 12.dp)
+            .fillMaxWidth()
+            .height(6.dp),
+        color = ArrBlue,
+        trackColor = MaterialTheme.colorScheme.surfaceVariant
+    )
 }
 
 @OptIn(ExperimentalTime::class)
 @Composable
-private fun ColumnScope.SeriesDetails(
+private fun SeriesDetails(
     item: ArrSeries,
-    isActive: Boolean
+    isActive: Boolean,
+    showBannerBackground: Boolean
 ) {
     val seasonLabel = mokoPlural(MR.plurals.seasons, item.seasonCount)
     val fileSizeString = item.fileSize.bytesAsFileSizeString()
     val network = item.network
+    val contentColor =
+        if (showBannerBackground) Color.White else MaterialTheme.colorScheme.onSurface
 
-    val firstLine = listOfNotNull(network, seasonLabel, fileSizeString)
-        .joinToString(Bullet)
-    Text(firstLine, color = Color.White, fontSize = 14.sp, lineHeight = 18.sp)
+    val firstLine = listOfNotNull(network, seasonLabel, fileSizeString).joinToString(Bullet)
+    Text(firstLine, color = contentColor, fontSize = 14.sp, lineHeight = 18.sp)
 
     val statusStr = when (item.status) {
         MediaStatus.Continuing -> item.nextAiring?.format()
             ?: "${mokoString(item.status.resource)} - ${mokoString(MR.strings.unknown)}"
         else -> mokoString(item.status.resource)
     }
-    Text(statusStr, color = Color.White, fontSize = 14.sp, lineHeight = 18.sp)
+    Text(statusStr, color = contentColor, fontSize = 14.sp, lineHeight = 18.sp)
 
     if (item.id != null) {
-        Spacer(modifier = Modifier.weight(1f))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 1.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 1.dp)
         ) {
-            Text(text = item.episodeFileCount.toString(), fontSize = 12.sp, color = Color.White)
-            Text(text = "/${item.episodeCount}", fontSize = 12.sp, color = Color.White)
+            Text(text = item.episodeFileCount.toString(), fontSize = 12.sp, color = contentColor)
+            Text(text = "/${item.episodeCount}", fontSize = 12.sp, color = contentColor)
         }
         LinearProgressIndicator(
             progress = { item.statusProgress },
@@ -195,23 +312,34 @@ private fun ColumnScope.SeriesDetails(
 
 @OptIn(ExperimentalTime::class)
 @Composable
-private fun ColumnScope.MovieDetails(item: ArrMovie, isActive: Boolean) {
+private fun MovieDetails(
+    item: ArrMovie,
+    isActive: Boolean,
+    showBannerBackground: Boolean
+) {
+    val contentColor =
+        if (showBannerBackground) Color.White else MaterialTheme.colorScheme.onSurface
+
     item.releaseDate?.format()?.let {
-        Text(it, color = Color.White, fontSize = 14.sp, lineHeight = 18.sp)
+        Text(it, color = contentColor, fontSize = 14.sp, lineHeight = 18.sp)
     }
 
     val firstLine = listOfNotNull(item.runtimeString, item.studio).joinToString(" • ")
-    Text(firstLine, color = Color.White, fontSize = 14.sp, lineHeight = 18.sp)
+    Text(firstLine, color = contentColor, fontSize = 14.sp, lineHeight = 18.sp)
 
     val statusLabel = item.status.name.takeIf { item.fileSize == 0L }
-    val secondLine = listOfNotNull(statusLabel, item.fileSize.bytesAsFileSizeString(), item.movieFile?.quality?.quality?.name).joinToString(" • ")
-    Text(secondLine, color = Color.White, fontSize = 14.sp, lineHeight = 18.sp)
+    val secondLine = listOfNotNull(
+        statusLabel,
+        item.fileSize.bytesAsFileSizeString(),
+        item.movieFile?.quality?.quality?.name
+    ).joinToString(" • ")
+    Text(secondLine, color = contentColor, fontSize = 14.sp, lineHeight = 18.sp)
 
     if (item.id != null) {
-        Spacer(modifier = Modifier.weight(1f))
         LinearProgressIndicator(
             progress = { if (isActive) 1f else item.statusProgress },
             modifier = Modifier
+                .padding(top = 8.dp)
                 .fillMaxWidth()
                 .height(6.dp),
             color = if (isActive) ArrPurple else item.statusColor,
@@ -222,32 +350,36 @@ private fun ColumnScope.MovieDetails(item: ArrMovie, isActive: Boolean) {
 
 @OptIn(ExperimentalTime::class)
 @Composable
-private fun ColumnScope.ArtistDetails(
+private fun ArtistDetails(
     item: Arrtist,
-    isActive: Boolean
+    isActive: Boolean,
+    showBannerBackground: Boolean
 ) {
     val albumCountString = mokoPlural(MR.plurals.albums, item.albumCount)
     val fileSizeString = item.fileSize.bytesAsFileSizeString()
+    val contentColor =
+        if (showBannerBackground) Color.White else MaterialTheme.colorScheme.onSurface
 
-    val firstLine = listOfNotNull(albumCountString, fileSizeString)
-        .joinToString(Bullet)
-    Text(firstLine, color = Color.White, fontSize = 14.sp, lineHeight = 18.sp)
+    val firstLine = listOfNotNull(albumCountString, fileSizeString).joinToString(Bullet)
+    Text(firstLine, color = contentColor, fontSize = 14.sp, lineHeight = 18.sp)
 
     val statusStr = when (item.status) {
         MediaStatus.Continuing -> item.nextAlbum?.releaseDate?.format()
             ?: "${mokoString(item.status.resource)} - ${mokoString(MR.strings.unknown)}"
         else -> mokoString(item.status.resource)
     }
-    Text(statusStr, color = Color.White, fontSize = 14.sp, lineHeight = 18.sp)
+    Text(statusStr, color = contentColor, fontSize = 14.sp, lineHeight = 18.sp)
 
     if (item.id != null) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 1.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 1.dp)
         ) {
-            Text(text = item.trackFileCount.toString(), fontSize = 12.sp, color = Color.White)
-            Text(text = "/${item.trackCount}", fontSize = 12.sp, color = Color.White)
+            Text(text = item.trackFileCount.toString(), fontSize = 12.sp, color = contentColor)
+            Text(text = "/${item.trackCount}", fontSize = 12.sp, color = contentColor)
         }
         LinearProgressIndicator(
             progress = { item.statusProgress },
@@ -262,32 +394,36 @@ private fun ColumnScope.ArtistDetails(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ColumnScope.AuthorDetails(
+private fun AuthorDetails(
     item: Author,
-    isActive: Boolean
+    isActive: Boolean,
+    showBannerBackground: Boolean
 ) {
     val bookCountString = mokoPlural(MR.plurals.books_count, item.totalBookCount)
     val fileSizeString = item.fileSize.bytesAsFileSizeString()
+    val contentColor =
+        if (showBannerBackground) Color.White else MaterialTheme.colorScheme.onSurface
 
-    val firstLine = listOfNotNull(bookCountString, fileSizeString)
-        .joinToString(Bullet)
-    Text(firstLine, color = Color.White, fontSize = 14.sp, lineHeight = 18.sp)
+    val firstLine = listOfNotNull(bookCountString, fileSizeString).joinToString(Bullet)
+    Text(firstLine, color = contentColor, fontSize = 14.sp, lineHeight = 18.sp)
 
     val statusStr = when (item.status) {
         MediaStatus.Continuing -> item.nextBook?.releaseDate?.format()
             ?: "${mokoString(item.status.resource)} - ${mokoString(MR.strings.unknown)}"
         else -> mokoString(item.status.resource)
     }
-    Text(statusStr, color = Color.White, fontSize = 14.sp, lineHeight = 18.sp)
+    Text(statusStr, color = contentColor, fontSize = 14.sp, lineHeight = 18.sp)
 
     if (item.id != null) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 1.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 1.dp)
         ) {
-            Text(text = (item.bookFileCount).toString(), fontSize = 12.sp, color = Color.White)
-            Text(text = "/${item.bookCount}", fontSize = 12.sp, color = Color.White)
+            Text(text = item.bookFileCount.toString(), fontSize = 12.sp, color = contentColor)
+            Text(text = "/${item.bookCount}", fontSize = 12.sp, color = contentColor)
         }
         LinearProgressIndicator(
             progress = { item.statusProgress },
@@ -302,15 +438,35 @@ private fun ColumnScope.AuthorDetails(
 
 @Composable
 fun BannerView(
-    bannerUrl: String?,
-    modifier: Modifier = Modifier
+    bannerModel: Any?,
+    modifier: Modifier = Modifier,
+    blur: Blur = Blur.Normal
 ) {
-    bannerUrl?.let { bannerUrl ->
-        AsyncImage(
-            model = rememberRemoteImageData(bannerUrl),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = modifier.cloudy()
-        )
+    when (bannerModel) {
+        null -> {}
+        is Painter -> {
+            Box(modifier = modifier) {
+                Image(
+                    painter = bannerModel,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .cloudy(radius = blur.radius)
+                )
+            }
+        }
+        else -> {
+            Box(modifier = modifier) {
+                AsyncImage(
+                    model = bannerModel,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .cloudy(radius = blur.radius)
+                )
+            }
+        }
     }
 }
