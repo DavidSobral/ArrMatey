@@ -88,7 +88,7 @@ class BookshelfClient(
         get("author/lookup", mapOf("term" to query))
 
     override suspend fun addItemToLibrary(item: ArrMedia): NetworkResult<Author> =
-        put<ArrMedia, Author>("author", item)
+        post<ArrMedia, Author>("author", item)
 
     override suspend fun performAutomaticSearch(id: Long): NetworkResult<CommandResponse> =
         post("command", CommandPayload.Author(id))

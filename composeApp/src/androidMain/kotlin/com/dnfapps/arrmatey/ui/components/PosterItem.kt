@@ -187,7 +187,7 @@ fun BasePosterItem(
     errorContent: @Composable BoxScope.() -> Unit = {},
     additionalContent: @Composable BoxScope.() -> Unit = {},
     footerContent: @Composable ColumnScope.() -> Unit = {},
-    footerVisible: Boolean = true
+    footerVisible: Boolean = false
 ) {
     Card(
         shape = RoundedCornerShape(radius.radius),

@@ -37,7 +37,8 @@ class SettingsNavigation: Navigation<SettingsScreen>(SettingsScreen.Landing) {
         when (type) {
             InstanceType.Sonarr,
             InstanceType.Radarr,
-            InstanceType.Lidarr -> {
+            InstanceType.Lidarr,
+            InstanceType.Booksehelf -> {
                 navigateTo(SettingsScreen.ArrDashboard(id))
             }
             else -> navigateTo(SettingsScreen.EditInstance(id))

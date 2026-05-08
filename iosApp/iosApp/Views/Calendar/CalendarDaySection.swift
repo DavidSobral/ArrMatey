@@ -13,6 +13,7 @@ struct CalendarDaySection: View {
     let movies: [ArrMovie]
     let episodeGroups: [EpisodeGroup]
     let albums: [ArrAlbum]
+    let books: [Book]
     let isToday: Bool
     
     private var totalEpisodes: Int {
@@ -69,6 +70,10 @@ struct CalendarDaySection: View {
             
             ForEach(albums, id: \.self) { album in
                 AlbumCalendarItem(album: album)
+            }
+            
+            ForEach(books, id: \.self) { book in
+                BookCalendarItem(book: book)
             }
         }
     }

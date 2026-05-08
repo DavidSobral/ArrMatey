@@ -15,6 +15,7 @@ class PerformRefreshUseCase {
             InstanceType.Sonarr -> CommandPayload.RefreshSeries(mediaId)
             InstanceType.Radarr -> CommandPayload.RefreshMovie(listOf(mediaId))
             InstanceType.Lidarr -> CommandPayload.RefreshAlbum(mediaId)
+            InstanceType.Booksehelf -> CommandPayload.RefreshAuthor(mediaId)
             else -> throw UnsupportedOperationException("Cannot perform refresh on an instance of type $type")
         }
         return repository.executeCommand(payload)

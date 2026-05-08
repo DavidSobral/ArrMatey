@@ -2,9 +2,11 @@ package com.dnfapps.arrmatey.arr.service
 
 import com.dnfapps.arrmatey.arr.api.model.ArrAlbum
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
+import com.dnfapps.arrmatey.arr.api.model.Author
 import com.dnfapps.arrmatey.arr.api.model.Book
 import com.dnfapps.arrmatey.arr.api.model.Episode
 import com.dnfapps.arrmatey.arr.api.model.EpisodeGroup
+import com.dnfapps.arrmatey.client.NetworkResult
 import com.dnfapps.arrmatey.client.onError
 import com.dnfapps.arrmatey.client.onSuccess
 import com.dnfapps.arrmatey.instances.model.InstanceType
@@ -17,6 +19,7 @@ import dev.shivathapaa.logger.api.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -87,13 +90,16 @@ class CalendarService(
     }
 
     suspend fun loadMoreDates() {
-        if (_isLoadingFuture.value) return
+        if (_isLoadingFuture.value || _isLoading.value) return
 
-        val lastDate = _dates.value.lastOrNull() ?: return
+        val lastDate = _dates.value.lastOrNull() ?: run {
+            load()
+            return
+        }
 
         _isLoadingFuture.value = true
 
-        val start = lastDate
+        val start = lastDate.plus(1, DateTimeUnit.DAY)
         val end = lastDate.plus(daysRange, DateTimeUnit.DAY)
 
         fetch(start, end)
@@ -361,9 +367,17 @@ class CalendarService(
         start: LocalDate,
         end: LocalDate
     ) {
+        val authors = (repository.client.getLibrary() as? NetworkResult.Success)?.data?.filterIsInstance<Author>()?.associateBy { it.id } ?: emptyMap()
+
         repository.client.getBookCalendar(start, end)
             .onSuccess { fetchedBooks ->
-                val fetchedIds = fetchedBooks.map { it.id.toInt() }.toSet()
+                val updatedBooks = fetchedBooks.map { book ->
+                    authors[book.authorId]?.let { author ->
+                        book.copy(authorTitle = author.title)
+                    } ?: book
+                }
+
+                val fetchedIds = updatedBooks.map { it.id.toInt() }.toSet()
 
                 val snapshot = _books.value.values.flatten()
                 scope.launch {
@@ -377,7 +391,7 @@ class CalendarService(
 
                     _books.update { current ->
                         val next = current.toMutableMap()
-                        fetchedBooks.forEach { book ->
+                        updatedBooks.forEach { book ->
                             book.releaseDate?.let { instant ->
                                 scheduleNotificationUseCase(
                                     instance = repository.instance,

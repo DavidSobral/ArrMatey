@@ -58,6 +58,7 @@ fun CalendarMonthView(
     val dayMovies = state.movies[selectedDate] ?: emptyList()
     val dayEpisodeGroups = state.groupedEpisodes[selectedDate] ?: emptyList()
     val dayAlbums = state.albums[selectedDate] ?: emptyList()
+    val dayBooks = state.books[selectedDate] ?: emptyList()
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
@@ -107,7 +108,8 @@ fun CalendarMonthView(
                         date = selectedDate,
                         movies = dayMovies,
                         episodeGroups = dayEpisodeGroups,
-                        albums = dayAlbums
+                        albums = dayAlbums,
+                        books = dayBooks
                     )
                 }
             }

@@ -33,6 +33,7 @@ fun CalendarDayCell(
     movieCount: Int,
     episodeCount: Int,
     albumCount: Int,
+    bookCount: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -70,7 +71,7 @@ fun CalendarDayCell(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            if (movieCount > 0 || episodeCount > 0 || albumCount > 0) {
+            if (movieCount > 0 || episodeCount > 0 || albumCount > 0 || bookCount > 0) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -98,6 +99,15 @@ fun CalendarDayCell(
                         item {
                             GridBadge(
                                 albumCount,
+                                MaterialTheme.colorScheme.secondaryContainer,
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                    }
+                    if (bookCount > 0) {
+                        item {
+                            GridBadge(
+                                bookCount,
                                 MaterialTheme.colorScheme.secondaryContainer,
                                 MaterialTheme.colorScheme.onSecondaryContainer
                             )

@@ -43,4 +43,10 @@ data class Book(
     fun getCover() = images.firstOrNull {
         it.coverType == CoverType.Cover
     }
+
+    val isDownloaded: Boolean
+        get() = statistics?.percentOfBooks?.equals(100f) ?: false
+
+    val isPartiallyDownloaded: Boolean
+        get() = (statistics?.percentOfBooks ?: 0f) > 0f
 }

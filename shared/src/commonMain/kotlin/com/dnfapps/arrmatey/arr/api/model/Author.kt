@@ -98,11 +98,13 @@ data class Author(
         rootFolderPath: String?,
         tags: List<Int>
     ) = copy(
-        id = 0,
+//        id = 0,
         addOptions = AuthorAddOptions(monitor = monitor),
         monitorNewItems = monitorNew,
+        monitored = monitor != AuthorMonitorType.None,
         qualityProfileId = qualityProfileId,
         rootFolderPath = rootFolderPath,
+        path = "${rootFolderPath}/${folder}",
         metadataProfileId = 1,
         tags = tags
     )
@@ -118,6 +120,7 @@ data class Author(
         monitorNewItems = monitorNew,
         qualityProfileId = qualityProfileId,
         rootFolderPath = rootFolderPath,
+        path = "${rootFolderPath}/${folder}",
         tags = tags
     )
 }

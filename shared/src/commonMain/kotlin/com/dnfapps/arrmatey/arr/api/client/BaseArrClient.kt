@@ -56,7 +56,10 @@ abstract class BaseArrClient(
             "includeSeries" to true,
             "includeEpisode" to true,
             "includeAlbum" to true,
-            "includeArtist" to true
+            "includeArtist" to true,
+            "includeUnknownAuthorItems" to true,
+            "includeBook" to true,
+            "includeAuthor" to true
         )).map { it.setInstance(instance.id, instance.label) }
 
     override suspend fun downloadRelease(

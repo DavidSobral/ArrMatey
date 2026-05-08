@@ -16,6 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dnfapps.arrmatey.arr.api.model.ArrAlbum
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
+import com.dnfapps.arrmatey.arr.api.model.Book
+import com.dnfapps.arrmatey.arr.api.model.CommandPayload
 import com.dnfapps.arrmatey.arr.api.model.EpisodeGroup
 import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.utils.mokoString
@@ -34,7 +36,8 @@ fun CalendarDaySection(
     date: LocalDate,
     movies: List<ArrMovie>,
     episodeGroups: List<EpisodeGroup>,
-    albums: List<ArrAlbum>
+    albums: List<ArrAlbum>,
+    books: List<Book>
 ) {
     val today = remember {
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -97,6 +100,10 @@ fun CalendarDaySection(
 
         albums.forEach { album ->
             AlbumCalendarItem(album)
+        }
+
+        books.forEach { book ->
+            BookCalendarItem(book)
         }
     }
 }

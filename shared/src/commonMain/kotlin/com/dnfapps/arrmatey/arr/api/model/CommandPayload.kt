@@ -27,5 +27,7 @@ sealed class CommandPayload(val name: String) {
     @Serializable
     data class RefreshAlbum(val albumId: Long): CommandPayload("RefreshAlbum")
     @Serializable
+    data class RefreshAuthor(val authorId: Long): CommandPayload("RefreshAuthor")
+    @Serializable
     data object RefreshMonitoredDownloads: CommandPayload("RefreshMonitoredDownloads")
 }
