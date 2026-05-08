@@ -89,7 +89,10 @@ fun CalendarTab(
                     )
                 }
                 CalendarViewMode.Month -> {
-                    CalendarMonthView(calendarState)
+                    CalendarMonthView(
+                        state = calendarState,
+                        onLoadMore = { viewModel.loadMore() }
+                    )
                 }
             }
         }

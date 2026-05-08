@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.dnfapps.arrmatey.arr.state.CalendarState
 import com.dnfapps.arrmatey.extensions.localToday
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlin.time.Clock
@@ -39,7 +40,8 @@ import kotlin.time.ExperimentalTime
 @OptIn(ExperimentalTime::class)
 @Composable
 fun CalendarMonthView(
-    state: CalendarState
+    state: CalendarState,
+    onLoadMore: () -> Unit
 ) {
     val today = remember { Clock.localToday() }
     var currentMonth by remember { mutableStateOf(today) }
@@ -51,8 +53,22 @@ fun CalendarMonthView(
         }
     }
 
-    LaunchedEffect(currentMonth) {
-        selectedDate = today
+    LaunchedEffect(currentMonth, state.dates) {
+        if (selectedDate.month != currentMonth.month || selectedDate.year != currentMonth.year) {
+             selectedDate = if (isCurrentMonth) today else LocalDate(
+                 currentMonth.year,
+                 currentMonth.month,
+                 1
+             )
+        }
+
+        val lastDayOfMonth = LocalDate(currentMonth.year, currentMonth.month, 1)
+            .plus(1, DateTimeUnit.MONTH)
+            .minus(1, DateTimeUnit.DAY)
+
+        if (state.dates.isNotEmpty() && lastDayOfMonth > state.dates.last()) {
+            onLoadMore()
+        }
     }
 
     val dayMovies = state.movies[selectedDate] ?: emptyList()
