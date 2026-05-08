@@ -61,7 +61,7 @@ struct CalendarDaySection: View {
             }
             
             ForEach(movies, id: \.id) { movie in
-                MovieCalendarItem(movie: movie)
+                MovieCalendarItem(movie: movie, date: date)
             }
             
             ForEach(episodeGroups.indices, id: \.self) { index in

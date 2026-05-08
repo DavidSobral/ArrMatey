@@ -39,11 +39,11 @@ struct BookCalendarItem: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(book.title)
                     .font(.headline)
-                    .foregroundColor(.themeOnSecondaryContainer)
+                    .foregroundColor(.black)
                 
                 Text(statusText)
                     .font(.subheadline)
-                    .foregroundColor(.themeOnSecondaryContainer)
+                    .foregroundColor(.black)
             }
             
             Spacer()
@@ -51,11 +51,11 @@ struct BookCalendarItem: View {
             if let icon = statusIcon {
                 Image(systemName: icon)
                     .font(.system(size: 18))
-                    .foregroundColor(.themeOnSecondaryContainer)
+                    .foregroundColor(.black)
             }
         }
         .padding()
-        .background(Color(.themeSecondaryContainer))
+        .background(.arrRed)
         .cornerRadius(12)
     }
 }

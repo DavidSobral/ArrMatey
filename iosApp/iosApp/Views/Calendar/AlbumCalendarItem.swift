@@ -32,11 +32,11 @@ struct AlbumCalendarItem: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(album.title ?? MR.strings().unknown.localized())
                     .font(.headline)
-                    .foregroundColor(.themeOnSecondaryContainer)
+                    .foregroundColor(.white)
                 
                 Text(album.artist?.title ?? MR.strings().unknown.localized())
                     .font(.subheadline)
-                    .foregroundColor(.themeOnSecondaryContainer)
+                    .foregroundColor(.white)
             }
             
             Spacer()
@@ -44,11 +44,11 @@ struct AlbumCalendarItem: View {
             if let icon = statusIcon {
                 Image(systemName: icon)
                     .font(.system(size: 18))
-                    .foregroundColor(.themeOnSecondaryContainer)
+                    .foregroundColor(.white)
             }
         }
         .padding()
-        .background(Color(.themeSecondaryContainer))
+        .background(.arrGreen)
         .cornerRadius(12)
     }
 }

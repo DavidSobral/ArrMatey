@@ -65,6 +65,7 @@ import com.dnfapps.arrmatey.arr.api.model.LidarrQueueItem
 import com.dnfapps.arrmatey.arr.api.model.QueueDownloadState
 import com.dnfapps.arrmatey.arr.api.model.QueueItem
 import com.dnfapps.arrmatey.arr.api.model.RadarrQueueItem
+import com.dnfapps.arrmatey.arr.api.model.ReadarrQueueItem
 import com.dnfapps.arrmatey.arr.api.model.SonarrQueueItem
 import com.dnfapps.arrmatey.arr.viewmodel.ActivityQueueViewModel
 import com.dnfapps.arrmatey.client.OperationStatus
@@ -76,6 +77,10 @@ import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.ui.components.LabelledSwitch
 import com.dnfapps.arrmatey.ui.components.navigation.NavigationDrawerButton
 import com.dnfapps.arrmatey.ui.menu.ActivityFilterMenu
+import com.dnfapps.arrmatey.ui.theme.ArrBlue
+import com.dnfapps.arrmatey.ui.theme.ArrGreen
+import com.dnfapps.arrmatey.ui.theme.ArrOrange
+import com.dnfapps.arrmatey.ui.theme.ArrRed
 import com.dnfapps.arrmatey.utils.format
 import com.dnfapps.arrmatey.utils.mokoString
 import org.koin.compose.koinInject
@@ -192,16 +197,16 @@ fun ActivityItem(
             contentColor = MaterialTheme.colorScheme.onErrorContainer
         )
         item is SonarrQueueItem -> CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            containerColor = ArrBlue
         )
         item is RadarrQueueItem -> CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            containerColor = ArrOrange
         )
         item is LidarrQueueItem -> CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            containerColor = ArrGreen
+        )
+        item is ReadarrQueueItem -> CardDefaults.cardColors(
+            containerColor = ArrRed
         )
         else -> CardDefaults.cardColors()
     }
@@ -221,7 +226,6 @@ fun ActivityItem(
                 Text(
                     text = item.titleLabel,
                     fontWeight = FontWeight.Medium,
-                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 

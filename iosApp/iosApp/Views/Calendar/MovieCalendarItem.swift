@@ -10,6 +10,7 @@ import Shared
 
 struct MovieCalendarItem: View {
     let movie: ArrMovie
+    let date: LocalDate
     
     private var statusIcon: String? {
         if movie.isDownloaded {
@@ -25,12 +26,21 @@ struct MovieCalendarItem: View {
     }
     
     private var releaseTypeText: String? {
-        if movie.inCinemas != nil {
-            return "In Cinemas"
-        } else if movie.digitalRelease != nil {
-            return "Digital Release"
+        if movie.inCinemas?.isEqual(date: date) == true {
+            MR.strings().in_cinemas.localized()
+        } else if movie.digitalRelease?.isEqual(date: date) == true {
+            MR.strings().digital_release.localized()
+        } else if movie.physicalRelease?.isEqual(date: date) == true {
+            MR.strings().physical_release.localized()
+        } else {
+            nil
         }
-        return nil
+    }
+    
+    private var infoString: String {
+        [movie.certification, movie.studio]
+            .compactMap{ $0 }
+            .joined(separator: " • ")
     }
     
     var body: some View {
@@ -41,14 +51,20 @@ struct MovieCalendarItem: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(movie.title ?? MR.strings().unknown.localized())
                     .font(.headline)
-                    .foregroundColor(.themeOnPrimaryContainer)
+                    .foregroundColor(.black)
                 
                 if let releaseType = releaseTypeText {
                     HStack(spacing: 8) {
                         Text(releaseType)
                             .font(.footnote)
-                            .foregroundColor(.themeOnPrimaryContainer)
+                            .foregroundColor(.black)
                     }
+                }
+                
+                if !infoString.isEmpty {
+                    Text(infoString)
+                        .font(.footnote)
+                        .foregroundColor(.black)
                 }
             }
             
@@ -57,11 +73,11 @@ struct MovieCalendarItem: View {
             if let icon = statusIcon {
                 Image(systemName: icon)
                     .font(.system(size: 20))
-                    .foregroundColor(.themeOnPrimaryContainer)
+                    .foregroundColor(.black)
             }
         }
         .padding()
-        .background(Color(.themePrimaryContainer))
+        .background(.arrOrange)
         .cornerRadius(12)
     }
 }

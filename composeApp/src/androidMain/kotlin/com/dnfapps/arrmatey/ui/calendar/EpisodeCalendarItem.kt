@@ -30,6 +30,7 @@ import com.dnfapps.arrmatey.navigation.ArrScreen
 import com.dnfapps.arrmatey.navigation.NavigationManager
 import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.ui.components.PosterItem
+import com.dnfapps.arrmatey.ui.theme.ArrBlue
 import com.dnfapps.arrmatey.utils.format
 import com.dnfapps.arrmatey.utils.mokoString
 import org.koin.compose.koinInject
@@ -46,7 +47,7 @@ fun EpisodeCalendarItem(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+            containerColor = ArrBlue
         )
     ) {
         Row(
@@ -62,7 +63,7 @@ fun EpisodeCalendarItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = episode.series?.title ?: mokoString(MR.strings.unknown),
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium
                 )
                 Text(

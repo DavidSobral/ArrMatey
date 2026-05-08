@@ -59,3 +59,8 @@ fun Instant.isToday(): Boolean {
     val instantDate = this.toLocalDateTime(TimeZone.currentSystemDefault()).date
     return instantDate == today
 }
+
+fun Instant.isEqual(date: LocalDate): Boolean {
+    val timeZone: TimeZone = TimeZone.currentSystemDefault()
+    return this.toLocalDateTime(timeZone).date == date
+}

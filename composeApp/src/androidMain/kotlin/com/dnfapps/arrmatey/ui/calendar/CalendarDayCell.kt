@@ -21,6 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dnfapps.arrmatey.extensions.localToday
+import com.dnfapps.arrmatey.ui.theme.ArrBlue
+import com.dnfapps.arrmatey.ui.theme.ArrGreen
+import com.dnfapps.arrmatey.ui.theme.ArrOrange
+import com.dnfapps.arrmatey.ui.theme.ArrRed
 import kotlinx.datetime.LocalDate
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -79,38 +83,22 @@ fun CalendarDayCell(
                 ) {
                     if (movieCount > 0) {
                         item {
-                            GridBadge(
-                                movieCount,
-                                MaterialTheme.colorScheme.primaryContainer,
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                            GridBadge(movieCount, ArrOrange, Color.Black)
                         }
                     }
                     if (episodeCount > 0) {
                         item {
-                            GridBadge(
-                                episodeCount,
-                                MaterialTheme.colorScheme.tertiaryContainer,
-                                MaterialTheme.colorScheme.onTertiaryContainer
-                            )
+                            GridBadge(episodeCount, ArrBlue, Color.Black)
                         }
                     }
                     if (albumCount > 0) {
                         item {
-                            GridBadge(
-                                albumCount,
-                                MaterialTheme.colorScheme.secondaryContainer,
-                                MaterialTheme.colorScheme.onSecondaryContainer
-                            )
+                            GridBadge(albumCount, ArrGreen, Color.White)
                         }
                     }
                     if (bookCount > 0) {
                         item {
-                            GridBadge(
-                                bookCount,
-                                MaterialTheme.colorScheme.secondaryContainer,
-                                MaterialTheme.colorScheme.onSecondaryContainer
-                            )
+                            GridBadge(bookCount, ArrRed, Color.Black)
                         }
                     }
                 }
