@@ -12,13 +12,18 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dnfapps.arrmatey.arr.state.ArrLibrary
@@ -59,6 +64,15 @@ fun ArrSearchScreen(
     val queueItems by activityQueueViewModel.queueItems.collectAsStateWithLifecycle()
 
     val textFieldState = rememberTextFieldState(initialQuery)
+    val searchBarState = rememberSearchBarState()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        if (initialQuery.isEmpty()) {
+            searchBarState.animateToExpanded()
+            focusRequester.requestFocus()
+        }
+    }
 
     LaunchedEffect(Unit) {
         snapshotFlow { textFieldState.text.toString() }
@@ -77,6 +91,8 @@ fun ArrSearchScreen(
         topBar = {
             ArrAppBarWithSearch(
                 textFieldState = textFieldState,
+                searchBarState = searchBarState,
+                inputFieldModifier = Modifier.focusRequester(focusRequester),
                 navigationIcon = { BackButton(navigation) },
                 actions = {
                     SearchSortMenu(
