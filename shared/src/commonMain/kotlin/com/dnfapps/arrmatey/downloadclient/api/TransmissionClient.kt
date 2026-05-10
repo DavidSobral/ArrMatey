@@ -163,7 +163,6 @@ class TransmissionClient(
             is NetworkResult.Success -> result.data.toUnitResult()
             is NetworkResult.Error -> result
             is NetworkResult.Loading -> result
-            else -> NetworkResult.Error(message = "Unexpected Transmission action state")
         }
     }
 
@@ -233,12 +232,14 @@ class TransmissionClient(
     }
 
     private fun TransmissionTorrent.toDownloadItem(client: DownloadClient): DownloadItem {
+        val coercedProgress = percentDone.coerceIn(0.0, 1.0)
         return DownloadItem(
             client = client,
             id = id.toString(),
             name = name,
             size = totalSize,
-            progress = percentDone.coerceIn(0.0, 1.0),
+            downloaded = (totalSize.toDouble() * coercedProgress).toLong(),
+            progress = coercedProgress,
             downloadSpeed = rateDownload,
             uploadSpeed = rateUpload,
             eta = eta,
@@ -250,14 +251,14 @@ class TransmissionClient(
 
     private fun Int.toDownloadStatus(): DownloadItemStatus {
         return when (this) {
-            0 -> DownloadItemStatus.Paused
+            0 -> DownloadItemStatus.DownloadingPaused
             1 -> DownloadItemStatus.Queued
             2 -> DownloadItemStatus.Queued
             3 -> DownloadItemStatus.Queued
             4 -> DownloadItemStatus.Downloading
             5 -> DownloadItemStatus.Queued
-            6 -> DownloadItemStatus.Seeding
-            else -> DownloadItemStatus.Queued
+            6 -> DownloadItemStatus.Uploading
+            else -> DownloadItemStatus.Unknown
         }
     }
 }

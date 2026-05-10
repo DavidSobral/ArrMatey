@@ -25,7 +25,7 @@ class SABnzbdClient(
             parameter("mode", "queue")
             parameter("apikey", downloadClient.apiKey)
             parameter("output", "json")
-        }.map { Unit }
+        }.map { }
     }
 
     override suspend fun getDownloads(): NetworkResult<List<DownloadItem>> {
@@ -53,11 +53,12 @@ class SABnzbdClient(
                         name = slot.filename,
                         size = totalBytes,
                         progress = progress,
+                        downloaded = (totalBytes.toDouble() * progress).toLong(),
                         downloadSpeed = 0,
                         uploadSpeed = 0,
                         eta = slot.timeLeft.toSeconds(),
                         etaString = slot.timeLeft,
-                        status = slot.status.toDownloadStatus(),
+                        status = DownloadItemStatus.from(slot.status),
                         category = slot.category,
                         addedOn = slot.added
                     )
@@ -75,7 +76,7 @@ class SABnzbdClient(
             parameter("value", id)
             parameter("apikey", downloadClient.apiKey)
             parameter("output", "json")
-        }.map { Unit }
+        }.map { }
     }
 
     override suspend fun resumeDownload(id: String): NetworkResult<Unit> {
@@ -84,7 +85,7 @@ class SABnzbdClient(
             parameter("value", id)
             parameter("apikey", downloadClient.apiKey)
             parameter("output", "json")
-        }.map { Unit }
+        }.map { }
     }
 
     override suspend fun deleteDownload(id: String, deleteFiles: Boolean): NetworkResult<Unit> {
@@ -129,15 +130,4 @@ class SABnzbdClient(
         }
     }
 
-    private fun String.toDownloadStatus(): DownloadItemStatus {
-        return when {
-            contains("downloading", ignoreCase = true) -> DownloadItemStatus.Downloading
-            contains("paused", ignoreCase = true) -> DownloadItemStatus.Paused
-            contains("queued", ignoreCase = true) -> DownloadItemStatus.Queued
-            contains("failed", ignoreCase = true) -> DownloadItemStatus.Failed
-            contains("completed", ignoreCase = true) -> DownloadItemStatus.Completed
-            contains("extract", ignoreCase = true) -> DownloadItemStatus.Queued
-            else -> DownloadItemStatus.Queued
-        }
-    }
 }
