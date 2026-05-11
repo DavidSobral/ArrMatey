@@ -6,6 +6,7 @@ import com.dnfapps.arrmatey.arr.api.model.Episode
 import com.dnfapps.arrmatey.arr.api.model.LidarrQueueItem
 import com.dnfapps.arrmatey.arr.api.model.QueueItem
 import com.dnfapps.arrmatey.arr.api.model.RadarrQueueItem
+import com.dnfapps.arrmatey.arr.api.model.ReadarrQueueItem
 import com.dnfapps.arrmatey.arr.api.model.SonarrQueueItem
 import com.dnfapps.arrmatey.arr.service.ActivityQueueService
 import com.dnfapps.arrmatey.arr.state.ActivityQueueUiState
@@ -21,6 +22,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -53,6 +56,9 @@ class ActivityQueueViewModel(
         )
 
     val instances = instanceRepository.observeAllInstances()
+        .map { all ->
+            all.filter { it.type.supportsActivityQueue }
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -152,6 +158,7 @@ class ActivityQueueViewModel(
                         is SonarrQueueItem -> first.copy(taskGroupCount = size)
                         is RadarrQueueItem -> first.copy(taskGroupCount = size)
                         is LidarrQueueItem -> first.copy(taskGroupCount = size)
+                        is ReadarrQueueItem -> first.copy(taskGroupCount = size)
                     }
                 } ?: first
             }

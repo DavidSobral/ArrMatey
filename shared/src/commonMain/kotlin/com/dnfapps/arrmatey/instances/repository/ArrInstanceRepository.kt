@@ -1,6 +1,7 @@
 package com.dnfapps.arrmatey.instances.repository
 
 import com.dnfapps.arrmatey.arr.api.client.ArrClient
+import com.dnfapps.arrmatey.arr.api.client.BookshelfClient
 import com.dnfapps.arrmatey.arr.api.client.LidarrClient
 import com.dnfapps.arrmatey.arr.api.client.RadarrClient
 import com.dnfapps.arrmatey.arr.api.client.SonarrClient
@@ -13,6 +14,11 @@ import com.dnfapps.arrmatey.arr.api.model.ArrRelease
 import com.dnfapps.arrmatey.arr.api.model.ArrSeries
 import com.dnfapps.arrmatey.arr.api.model.ArrSoftwareStatus
 import com.dnfapps.arrmatey.arr.api.model.Arrtist
+import com.dnfapps.arrmatey.arr.api.model.Author
+import com.dnfapps.arrmatey.arr.api.model.Book
+import com.dnfapps.arrmatey.arr.api.model.BookEdition
+import com.dnfapps.arrmatey.arr.api.model.BookFile
+import com.dnfapps.arrmatey.arr.api.model.BookSeries
 import com.dnfapps.arrmatey.arr.api.model.CommandPayload
 import com.dnfapps.arrmatey.arr.api.model.DownloadReleasePayload
 import com.dnfapps.arrmatey.arr.api.model.Episode
@@ -20,17 +26,18 @@ import com.dnfapps.arrmatey.arr.api.model.ExtraFile
 import com.dnfapps.arrmatey.arr.api.model.HistoryItem
 import com.dnfapps.arrmatey.arr.api.model.LidarrTrack
 import com.dnfapps.arrmatey.arr.api.model.LidarrTrackFile
+import com.dnfapps.arrmatey.arr.api.model.MockMedia
 import com.dnfapps.arrmatey.arr.api.model.MonitoredResponse
 import com.dnfapps.arrmatey.arr.api.model.QualityProfile
 import com.dnfapps.arrmatey.arr.api.model.QueueItem
 import com.dnfapps.arrmatey.arr.api.model.ReleaseParams
 import com.dnfapps.arrmatey.arr.api.model.RootFolder
 import com.dnfapps.arrmatey.arr.api.model.Tag
+import com.dnfapps.arrmatey.arr.state.DownloadState
 import com.dnfapps.arrmatey.client.NetworkResult
 import com.dnfapps.arrmatey.client.OperationStatus
 import com.dnfapps.arrmatey.client.onError
 import com.dnfapps.arrmatey.client.onSuccess
-import com.dnfapps.arrmatey.arr.state.DownloadState
 import com.dnfapps.arrmatey.instances.model.Instance
 import com.dnfapps.arrmatey.instances.model.InstanceType
 import dev.shivathapaa.logger.api.Logger
@@ -61,10 +68,14 @@ class ArrInstanceRepository(
     val lidarrClient: LidarrClient
         get() = client as? LidarrClient ?: throw IllegalStateException("Client is not a LidarrClient instance")
 
+    val bookshelfClient: BookshelfClient
+        get() = client as? BookshelfClient ?: throw IllegalStateException("Client is not a BookshelfClient instance")
+
     private fun createClient(): ArrClient = when (instance.type) {
         InstanceType.Sonarr -> SonarrClient(instance, httpClient)
         InstanceType.Radarr -> RadarrClient(instance, httpClient)
         InstanceType.Lidarr -> LidarrClient(instance, httpClient)
+        InstanceType.Booksehelf -> BookshelfClient(instance, httpClient)
         else -> TODO()
     }
 
@@ -144,6 +155,23 @@ class ArrInstanceRepository(
     private val _artistTrackFiles = MutableStateFlow<Map<Long, Map<Long, List<LidarrTrackFile>>>>(emptyMap())
     val artistTrackFiles: StateFlow<Map<Long, Map<Long, List<LidarrTrackFile>>>> = _artistTrackFiles.asStateFlow()
 
+    // Readarr-specific
+    private val _authorSeries = MutableStateFlow<Map<Long, List<BookSeries>>>(emptyMap())
+    val authorSeries: StateFlow<Map<Long, List<BookSeries>>> = _authorSeries.asStateFlow()
+
+    private val _authorBookFiles = MutableStateFlow<Map<Long, List<BookFile>>>(emptyMap())
+    val authorBookFiles: StateFlow<Map<Long, List<BookFile>>> = _authorBookFiles.asStateFlow()
+
+    private val _booksLibrary = MutableStateFlow<List<Book>>(emptyList())
+    val booksLibrary: StateFlow<List<Book>> = _booksLibrary.asStateFlow()
+
+    val authorBooks: Flow<Map<Long, List<Book>>> = booksLibrary
+        .map { books ->
+            books
+                .filter { it.authorId != null }
+                .groupBy { it.authorId!! }
+        }
+
     override suspend fun testConnection(): NetworkResult<Unit> {
         return client.testConnection()
     }
@@ -151,10 +179,12 @@ class ArrInstanceRepository(
     suspend fun refreshLibrary() {
         _library.value = NetworkResult.Loading
         _library.value = client.getLibrary()
-            .onSuccess { logger.info { "Library: $it" } }
-            .onError { code, message, cause ->
-                logger.error(cause) { "Error getting library: $message" }
-            }
+        safePerformReadarr { client ->
+            client.getBooks()
+                .onSuccess {
+                    _booksLibrary.value = it
+                }
+        }
     }
 
     suspend fun getMediaDetails(id: Long): NetworkResult<ArrMedia> {
@@ -219,11 +249,7 @@ class ArrInstanceRepository(
     suspend fun refreshActivityTasks(page: Int = 1, pageSize: Int = 100) {
         client.fetchActivityTasks(page, pageSize)
             .onSuccess { queue ->
-                logger.info { "Activity tasks: $queue" }
                 _activityTasks.value = queue.records
-            }
-            .onError { code, message, cause ->
-                logger.error(cause) { "Error getting activity tasks: $message" }
             }
     }
 
@@ -337,10 +363,15 @@ class ArrInstanceRepository(
         return client.command(payload)
     }
 
-    suspend fun getItemHistory(itemId: Long, page: Int = 1, pageSize: Int = 100): NetworkResult<List<HistoryItem>> {
+    suspend fun getItemHistory(
+        itemId: Long,
+        altIt: Long? = null,
+        page: Int = 1,
+        pageSize: Int = 100
+    ): NetworkResult<List<HistoryItem>> {
         _historyStatus.value = OperationStatus.InProgress
 
-        return client.getItemHistory(itemId, page, pageSize)
+        return client.getItemHistory(itemId, page, pageSize, altIt)
             .onSuccess { history ->
                 val currentCache = _historyCache.value.toMutableMap()
                 currentCache[itemId] = history
@@ -570,6 +601,8 @@ class ArrInstanceRepository(
                         is ArrSeries -> item.copy(monitored = status)
                         is ArrMovie -> item.copy(monitored = status)
                         is Arrtist -> item.copy(monitored = status)
+                        is Author -> item.copy(monitored = status)
+                        is MockMedia -> item
                     }
                 } else {
                     item
@@ -586,6 +619,8 @@ class ArrInstanceRepository(
                 is ArrSeries -> item.copy(monitored = status)
                 is ArrMovie -> item.copy(monitored = status)
                 is Arrtist -> item.copy(monitored = status)
+                is Author -> item.copy(monitored = status)
+                is MockMedia -> item
             }
             val updatedCache = currentDetailsCache.toMutableMap()
             updatedCache[id] = updatedMedia
@@ -757,6 +792,79 @@ class ArrInstanceRepository(
                 }
         }
 
+    // Readarr-specific
+    suspend fun getAuthorSeries(authorId: Long): NetworkResult<List<BookSeries>> =
+        safePerformReadarr { client ->
+            client.getAuthorSeries(authorId)
+                .onSuccess { result ->
+                    val currentMap = _authorSeries.value.toMutableMap()
+                    currentMap[authorId] = result
+                    _authorSeries.value = currentMap
+                }
+        }
+
+    suspend fun getAuthorBookFiles(authorId: Long): NetworkResult<List<BookFile>> =
+        safePerformReadarr { client ->
+            client.getAuthorBookFiles(authorId)
+                .onSuccess { result ->
+                    val currentMap = _authorBookFiles.value.toMutableMap()
+                    currentMap[authorId] = result
+                    _authorBookFiles.value = currentMap
+                }
+        }
+
+    suspend fun deleteBookFiles(bookFilesIds: List<Long>): NetworkResult<Unit> =
+        safePerformReadarr { client ->
+            client.deleteBookFiles(bookFilesIds)
+                .onSuccess { result ->
+
+                }
+        }
+
+    suspend fun toggleBookMonitor(book: Book): NetworkResult<Book> {
+        _monitorStatus.value = OperationStatus.InProgress
+
+        if (instance.type != InstanceType.Booksehelf) {
+            _monitorStatus.value = OperationStatus.Error(message = "Not a Readarr instance")
+            return NetworkResult.Error(message = "Not a Readarr instance")
+        }
+
+        val bookId = book.id
+        val updatedMonitored = !book.monitored
+
+        return (client as BookshelfClient).setBookMonitorStatus(listOf(bookId), updatedMonitored)
+            .onSuccess { responses ->
+                val response = responses.firstOrNull()
+                val isMonitored = response?.monitored ?: updatedMonitored
+                _monitorStatus.value = OperationStatus.Success(
+                    if (isMonitored) "Book monitored" else "Book unmonitored"
+                )
+                val updatedBook = book.copy(monitored = isMonitored)
+                updateBookInCache(updatedBook)
+            }
+            .onError { code, message, cause ->
+                _monitorStatus.value = OperationStatus.Error(code, message, cause)
+            }
+            .map { responses ->
+                val response = responses.firstOrNull()
+                book.copy(monitored = response?.monitored ?: updatedMonitored)
+            }
+            .also {
+                _monitorStatus.value = OperationStatus.Idle
+            }
+    }
+
+    private fun updateBookInCache(book: Book) {
+        _booksLibrary.update { currentList ->
+            currentList.map { if (it.id == book.id) book else it }
+        }
+    }
+
+    suspend fun getBookEditions(bookId: Long): NetworkResult<List<BookEdition>> =
+        safePerformReadarr { client ->
+            client.getBookEditions(bookId)
+        }
+
     // Helpers
     private suspend inline fun <reified T> safePerformSonarr(
         operation: suspend (SonarrClient) -> NetworkResult<T>
@@ -776,6 +884,13 @@ class ArrInstanceRepository(
         operation: suspend (LidarrClient) -> NetworkResult<T>
     ): NetworkResult<T> {
         val client = client as? LidarrClient ?: return NetworkResult.Error(message = "Not a Lidarr instance")
+        return operation(client)
+    }
+
+    private suspend inline fun <reified T> safePerformReadarr(
+        operation: suspend (BookshelfClient) -> NetworkResult<T>
+    ): NetworkResult<T> {
+        val client = client as? BookshelfClient ?: return NetworkResult.Error(message = "Not a Readarr instance")
         return operation(client)
     }
 

@@ -1,5 +1,6 @@
 package com.dnfapps.arrmatey.ui.screens
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -16,11 +17,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.WifiFind
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -49,6 +54,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -56,17 +63,25 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dnfapps.arrmatey.downloadclient.database.DownloadClientConflictField
 import com.dnfapps.arrmatey.downloadclient.model.DownloadClientType
+import com.dnfapps.arrmatey.downloadclient.state.DownloadClientConfigurationUiState
 import com.dnfapps.arrmatey.downloadclient.state.DownloadClientMutationState
 import com.dnfapps.arrmatey.downloadclient.viewmodel.DownloadClientSettingsViewModel
+import com.dnfapps.arrmatey.entensions.openAppSettings
+import com.dnfapps.arrmatey.instances.model.InstanceType
+import com.dnfapps.arrmatey.instances.state.AddInstanceUiState
+import com.dnfapps.arrmatey.isDebug
 import com.dnfapps.arrmatey.navigation.Navigation
 import com.dnfapps.arrmatey.navigation.NavigationManager
 import com.dnfapps.arrmatey.navigation.SettingsScreen
+import com.dnfapps.arrmatey.permissions.rememberLocationPermissionHandler
 import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.ui.components.AMOutlinedTextField
 import com.dnfapps.arrmatey.ui.components.DropdownPicker
 import com.dnfapps.arrmatey.ui.components.LabelledCheckbox
 import com.dnfapps.arrmatey.ui.components.LabelledSwitch
 import com.dnfapps.arrmatey.ui.components.navigation.BackButton
+import com.dnfapps.arrmatey.utils.MokoStrings
+import com.dnfapps.arrmatey.utils.getNetworkUtils
 import com.dnfapps.arrmatey.utils.koinInjectParams
 import com.dnfapps.arrmatey.utils.mokoString
 import com.dnfapps.arrmatey.utils.navigationBarBottomInset
@@ -274,7 +289,7 @@ fun AddEditDownloadClientScreen(
                 Card(
                     shape = MaterialTheme.shapes.large,
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -293,12 +308,19 @@ fun AddEditDownloadClientScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
+                        LabelledCheckbox(
+                            label = mokoString(MR.strings.no_auth_required),
+                            checked = uiState.noApiKeyRequired,
+                            onCheckedChange = { viewModel.updateNoApiKeyRequired(it) }
+                        )
+
                         AMOutlinedTextField(
                             value = uiState.username,
                             onValueChange = { viewModel.updateUsername(it) },
                             label = mokoString(MR.strings.client_username),
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            singleLine = true,
+                            enabled = !uiState.noApiKeyRequired
                         )
 
                         var showPassword by remember { mutableStateOf(false) }
@@ -324,7 +346,8 @@ fun AddEditDownloadClientScreen(
                                         Icon(Icons.Default.VisibilityOff, null)
                                     }
                                 }
-                            }
+                            },
+                            enabled = !uiState.noApiKeyRequired
                         )
 
                         Row(
@@ -340,12 +363,6 @@ fun AddEditDownloadClientScreen(
                             HorizontalDivider(Modifier.weight(1f))
                         }
 
-                        LabelledCheckbox(
-                            label = mokoString(MR.strings.use_basic_auth),
-                            checked = uiState.basicAuthEnabled,
-                            onCheckedChange = { viewModel.updateBasicAuthEnabled(it) }
-                        )
-
                         AMOutlinedTextField(
                             value = uiState.apiKey,
                             onValueChange = { viewModel.updateApiKey(it) },
@@ -353,30 +370,33 @@ fun AddEditDownloadClientScreen(
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             placeholder = mokoString(MR.strings.api_key_placeholder),
-                            enabled = !uiState.basicAuthEnabled
+                            enabled = !uiState.noApiKeyRequired
                         )
                     }
                 }
 
                 CustomHeaderSection(
+                    localNetworkSsids = uiState.localNetworkSsids,
+                    localNetworkConfigured = uiState.localNetworkConfigured,
                     headers = uiState.headers,
                     onHeadersChanged = { viewModel.updateHeaders(it) }
                 )
 
-                Card(
-                    shape = MaterialTheme.shapes.large,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    LabelledSwitch(
-                        label = mokoString(MR.strings.client_enabled),
-                        checked = uiState.enabled,
-                        onCheckedChange = { viewModel.updateEnabled(it) },
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
+                LocalNetworkArea(
+                    defaultPort = uiState.selectedType.defaultPort,
+                    uiState = uiState,
+                    onLocalNetworkEnabledChanged = { viewModel.updateLocalNetworkEnabled(it) },
+                    onLocalNetworkUrlChanged = { viewModel.updateLocalNetworkUrl(it) },
+                    onLocalNetworkSsidChanged = { viewModel.updateLocalNetworkSsid(it) },
+                    onTestLocalConnection = { viewModel.testLocalConnection() }
+                )
+
+                TestConnectionSection(
+                    isTesting = uiState.isTesting,
+                    testButtonEnabled = !uiState.isTesting && uiState.url.isNotBlank(),
+                    testResult = uiState.testResult,
+                    onTestConnection = { viewModel.testConnection() }
+                )
             }
         }
 
@@ -405,6 +425,181 @@ fun AddEditDownloadClientScreen(
                     Text(mokoString(MR.strings.confirm_delete_download_client))
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun LocalNetworkArea(
+    defaultPort: Int,
+    uiState: DownloadClientConfigurationUiState,
+    onLocalNetworkEnabledChanged: (Boolean) -> Unit,
+    onLocalNetworkUrlChanged: (String) -> Unit,
+    onLocalNetworkSsidChanged: (List<String>) -> Unit,
+    onTestLocalConnection: () -> Unit,
+    moko: MokoStrings = koinInject()
+) {
+    val context = LocalContext.current
+    val locationPermissionHandler = rememberLocationPermissionHandler(
+        onDenied = {
+            Toast.makeText(context, moko.getString(MR.strings.location_denied), Toast.LENGTH_SHORT).show()
+        }
+    )
+
+    Card(
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            LabelledSwitch(
+                label = mokoString(MR.strings.local_network_switching),
+                sublabel = mokoString(MR.strings.local_network_description),
+                checked = uiState.localNetworkEnabled,
+                onCheckedChange = {
+                    onLocalNetworkEnabledChanged(it)
+                    if (it) {
+                        locationPermissionHandler.checkAndPerformAction()
+                    }
+                }
+            )
+
+            AnimatedVisibility(visible = uiState.localNetworkEnabled && !locationPermissionHandler.isGranted()) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(mokoString(MR.strings.location_denied_message))
+                    FilledTonalButton(
+                        onClick = {
+                            context.openAppSettings()
+                            onLocalNetworkEnabledChanged(false)
+                        }
+                    ) {
+                        Text(mokoString(MR.strings.open_location_permissions))
+                    }
+                }
+            }
+
+            AnimatedVisibility(visible = uiState.localNetworkEnabled && locationPermissionHandler.isGranted()) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (isDebug()) {
+                        getNetworkUtils().getCurrentWifiSsid()?.let { ssid ->
+                            Text(
+                                text = mokoString(MR.strings.current_network, ssid),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    AMOutlinedTextField(
+                        value = uiState.localNetworkEndpoint,
+                        onValueChange = onLocalNetworkUrlChanged,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = mokoString(MR.strings.local_network_url),
+                        placeholder = "http://192.168.1.100:${defaultPort}",
+                        enabled = uiState.localNetworkEnabled,
+                        singleLine = true,
+                        isError = uiState.localNetworkEndpointError,
+                        errorMessage = if (uiState.localNetworkEndpointError) {
+                            mokoString(MR.strings.invalid_url)
+                        } else null
+                    )
+
+                    AMOutlinedTextField(
+                        value = uiState.localNetworkSsids.joinToString(", "),
+                        onValueChange = { value ->
+                            onLocalNetworkSsidChanged(value.split(",").map { it.trim() }.filter { it.isNotBlank() })
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = mokoString(MR.strings.wifi_network_name),
+                        placeholder = "MyHomeWiFi, MyHomeWiFi_5G",
+                        description = mokoString(MR.strings.wifi_ssid_description),
+                        enabled = uiState.localNetworkEnabled,
+                        singleLine = true
+                    )
+
+                    OutlinedButton(
+                        onClick = {
+                            if (locationPermissionHandler.isGranted()) {
+                                getNetworkUtils().getCurrentWifiSsid()?.let { ssid ->
+                                    val currentSsids = uiState.localNetworkSsids.toMutableList()
+                                    if (!currentSsids.contains(ssid)) {
+                                        currentSsids.add(ssid)
+                                        onLocalNetworkSsidChanged(currentSsids)
+                                    }
+                                } ?: run {
+                                    Toast.makeText(context, moko.getString(MR.strings.ssid_get_error), Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.WifiFind, null)
+                        Text(mokoString(MR.strings.use_current_network), modifier = Modifier.padding(start = 6.dp))
+                    }
+
+                    HorizontalDivider()
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Button(
+                            onClick = onTestLocalConnection,
+                            enabled = !uiState.localTesting &&
+                                    uiState.localNetworkEndpoint.isNotBlank(),
+                        ) {
+                            if (uiState.localTesting) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .size(16.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            }
+                            Text(text = mokoString(MR.strings.test_local_connection))
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            when (uiState.localTestResult) {
+                                true -> {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = mokoString(MR.strings.success),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                false -> {
+                                    Icon(
+                                        painter = painterResource(android.R.drawable.ic_menu_close_clear_cancel),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Text(
+                                        text = mokoString(MR.strings.failure),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                                else -> {}
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

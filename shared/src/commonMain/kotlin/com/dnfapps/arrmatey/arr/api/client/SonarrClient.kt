@@ -5,6 +5,7 @@ import com.dnfapps.arrmatey.arr.api.model.ArrAlbum
 import com.dnfapps.arrmatey.arr.api.model.ArrMedia
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
 import com.dnfapps.arrmatey.arr.api.model.ArrSeries
+import com.dnfapps.arrmatey.arr.api.model.Book
 import com.dnfapps.arrmatey.arr.api.model.CommandPayload
 import com.dnfapps.arrmatey.arr.api.model.CommandResponse
 import com.dnfapps.arrmatey.arr.api.model.DeleteEpisodeBody
@@ -114,7 +115,8 @@ class SonarrClient(
     override suspend fun getItemHistory(
         id: Long,
         page: Int,
-        pageSize: Int
+        pageSize: Int,
+        altId: Long?
     ): NetworkResult<List<SonarrHistoryItem>> =
         get<SonarrHistoryResponse>("history", mapOf(
             "page" to page,
@@ -145,6 +147,11 @@ class SonarrClient(
         start: LocalDate,
         end: LocalDate
     ): NetworkResult<List<ArrAlbum>> = NetworkResult.Success(emptyList())
+
+    override suspend fun getBookCalendar(
+        start: LocalDate,
+        end: LocalDate
+    ): NetworkResult<List<Book>> = NetworkResult.Success(emptyList())
 
     suspend fun updateEpisode(item: Episode): NetworkResult<Episode> =
         put("episode/${item.id}", item)

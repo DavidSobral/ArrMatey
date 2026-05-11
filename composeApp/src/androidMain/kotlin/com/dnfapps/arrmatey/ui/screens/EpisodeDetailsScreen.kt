@@ -108,7 +108,48 @@ fun EpisodeDetailsScreen(
         }
     }
 
-    Scaffold { paddingValues ->
+    Scaffold(
+        topBar = {
+            OverlayTopAppBar(
+                scrollState = scrollState,
+                navigationIcon = {
+                    IconButton(
+                        onClick = { navigation.popBackStack() },
+                        colors = IconButtonDefaults.headerBarColors()
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = mokoString(MR.strings.back)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { viewModel.toggleMonitor() },
+                        colors = IconButtonDefaults.headerBarColors()
+                    ) {
+                        Icon(
+                            imageVector = if (currentEpisode.monitored) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                            contentDescription = null
+                        )
+                    }
+                    IconButton(
+                        onClick = { confirmDelete = true },
+                        colors = IconButtonDefaults.headerBarColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        enabled = episode.episodeFile != null
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
         Box(
             modifier = Modifier
                 .padding(paddingValues.copy(top = 0.dp, bottom = 0.dp))
@@ -189,46 +230,6 @@ fun EpisodeDetailsScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
-
-            OverlayTopAppBar(
-                scrollState = scrollState,
-                modifier = Modifier.align(Alignment.TopCenter),
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navigation.popBackStack() },
-                        colors = IconButtonDefaults.headerBarColors()
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = mokoString(MR.strings.back)
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = { viewModel.toggleMonitor() },
-                        colors = IconButtonDefaults.headerBarColors()
-                    ) {
-                        Icon(
-                            imageVector = if (currentEpisode.monitored) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                            contentDescription = null
-                        )
-                    }
-                    IconButton(
-                        onClick = { confirmDelete = true },
-                        colors = IconButtonDefaults.headerBarColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        enabled = episode.episodeFile != null
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = null
-                        )
-                    }
-                }
-            )
         }
 
         if (confirmDelete) {

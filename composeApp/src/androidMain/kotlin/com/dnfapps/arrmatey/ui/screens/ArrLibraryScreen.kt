@@ -6,22 +6,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.CloudQueue
 import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
@@ -34,6 +27,9 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -59,8 +55,10 @@ import com.dnfapps.arrmatey.ui.components.ArrAppBarWithSearch
 import com.dnfapps.arrmatey.ui.components.ErrorView
 import com.dnfapps.arrmatey.ui.components.InstancePicker
 import com.dnfapps.arrmatey.ui.components.MediaView
+import com.dnfapps.arrmatey.ui.components.NoInstanceView
 import com.dnfapps.arrmatey.ui.components.navigation.NavigationDrawerButton
 import com.dnfapps.arrmatey.ui.menu.LibraryFilterMenu
+import com.dnfapps.arrmatey.ui.sheets.ArrViewCustomizationSheet
 import com.dnfapps.arrmatey.utils.koinInjectParams
 import com.dnfapps.arrmatey.utils.mokoString
 import dev.icerock.moko.resources.compose.painterResource
@@ -85,6 +83,8 @@ fun ArrLibraryScreen(
     val preferences by arrMediaViewModel.preferences.collectAsStateWithLifecycle()
 
     val errorMessage by arrMediaViewModel.errorMessage.collectAsStateWithLifecycle()
+
+    var showViewCustomizationSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(errorMessage) {
         errorMessage?.takeUnless { it.isEmpty() }?.let { message ->
@@ -137,8 +137,7 @@ fun ArrLibraryScreen(
                         onSortByChanged = { arrMediaViewModel.updateSortBy(it) },
                         sortOrder = preferences.sortOrder,
                         onSortOrderChanged = { arrMediaViewModel.updateSortOrder(it) },
-                        viewType = preferences.viewType,
-                        onViewTypeChanged = { arrMediaViewModel.updateViewType(it) }
+                        onOpenViewCustomization = { showViewCustomizationSheet = true }
                     )
                 }
             )
@@ -202,7 +201,7 @@ fun ArrLibraryScreen(
                                             )
                                         }
                                     },
-                                    viewType = preferences.viewType,
+                                    preferences = preferences,
                                     itemIsActive = { item ->
                                         queueItems.any { it.mediaId == item.id }
                                     }
@@ -218,6 +217,24 @@ fun ArrLibraryScreen(
                 }
             }
         }
+
+        if (showViewCustomizationSheet) {
+            ArrViewCustomizationSheet(
+                onDismissRequest = { showViewCustomizationSheet = false },
+                preferences = preferences,
+                type = type,
+                onViewTypeChanged = { arrMediaViewModel.updateViewType(it) },
+                onShowFullDetailsChanged = { arrMediaViewModel.updateShowFullDetails(it) },
+                onShowOverlayChanged = { arrMediaViewModel.updateShowOverlay(it) },
+                onShowBannerBackgroundChanged = { arrMediaViewModel.updateShowBannerBackground(it) },
+                onIncludeOverviewChanged = { arrMediaViewModel.updateIncludeOverview(it) },
+                onBannerBlurChanged = { arrMediaViewModel.updateBannerBlur(it) },
+                onGridDensityChanged = { arrMediaViewModel.updateGridDensity(it) },
+                onGridSpacingChanged = { arrMediaViewModel.updateGridSpacing(it) },
+                onPosterElevationChanged = { arrMediaViewModel.updatePosterElevation(it) },
+                onPosterRadiusChanged = { arrMediaViewModel.updatePosterRadius(it) }
+            )
+        }
     }
 }
 
@@ -231,6 +248,7 @@ private fun EmptySearchResultsView(
         InstanceType.Sonarr -> mokoString(MR.strings.type_series)
         InstanceType.Radarr -> mokoString(MR.strings.type_movie)
         InstanceType.Lidarr -> mokoString(MR.strings.type_artist)
+        InstanceType.Booksehelf -> mokoString(MR.strings.type_author)
         else -> mokoString(MR.strings.unknown)
     }
     Column(
@@ -263,54 +281,6 @@ private fun EmptySearchResultsView(
                 }
             }
         )
-    }
-}
-
-@Composable
-private fun NoInstanceView(
-    type: InstanceType,
-    modifier: Modifier = Modifier,
-    navigationManager: NavigationManager = koinInject()
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-    ) {
-        Icon(
-            imageVector = Icons.Default.CloudQueue,
-            contentDescription = null,
-            modifier = Modifier.size(128.dp)
-        )
-        Text(
-            text = mokoString(MR.strings.no_type_instances, type.name),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Text(text = mokoString(MR.strings.no_type_instances_message, type.name))
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Button(
-            onClick = {
-                navigationManager.openNewInstanceScreen(type)
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Default.AddCircle,
-                contentDescription = null
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = mokoString(MR.strings.add_instance),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
     }
 }
 

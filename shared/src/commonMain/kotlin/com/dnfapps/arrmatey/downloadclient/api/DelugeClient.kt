@@ -315,34 +315,21 @@ class DelugeClient(
     }
 
     private fun DelugeTorrentData.toDownloadItem(): DownloadItem {
+        val coercedProgress = (progress / 100.0).coerceIn(0.0, 1.0)
         return DownloadItem(
             client = downloadClient,
             id = hash,
             name = name,
             size = totalSize,
-            progress = (progress / 100.0).coerceIn(0.0, 1.0),
+            downloaded = (totalSize.toDouble() * coercedProgress).toLong(),
+            progress = coercedProgress,
             downloadSpeed = downloadPayloadRate,
             uploadSpeed = uploadPayloadRate,
             eta = eta,
-            status = state.toDownloadStatus(),
+            status = DownloadItemStatus.from(state),
             category = label,
             addedOn = timeAdded
         )
-    }
-
-    private fun String.toDownloadStatus(): DownloadItemStatus {
-        return when {
-            contains("paused", ignoreCase = true) -> DownloadItemStatus.Paused
-            contains("queued", ignoreCase = true) -> DownloadItemStatus.Queued
-            contains("error", ignoreCase = true) -> DownloadItemStatus.Failed
-            contains("seeding", ignoreCase = true) -> DownloadItemStatus.Seeding
-            contains("finished", ignoreCase = true) -> DownloadItemStatus.Completed
-            contains("downloading", ignoreCase = true) -> DownloadItemStatus.Downloading
-            contains("checking", ignoreCase = true) -> DownloadItemStatus.Queued
-            contains("allocating", ignoreCase = true) -> DownloadItemStatus.Queued
-            contains("moving", ignoreCase = true) -> DownloadItemStatus.Queued
-            else -> DownloadItemStatus.Queued
-        }
     }
 
     private fun nextRequestId(): Int {

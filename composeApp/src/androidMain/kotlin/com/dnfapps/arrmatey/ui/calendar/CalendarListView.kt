@@ -40,9 +40,10 @@ fun CalendarListView(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
-    val endOfListReached by remember {
+    val endOfListReached by remember(state.dates) {
         derivedStateOf {
-            listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index == state.dates.size - 1
+            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
+            lastVisibleItem != null && lastVisibleItem.index >= state.dates.size - 1
         }
     }
 
@@ -58,7 +59,7 @@ fun CalendarListView(
         }
     }
 
-    LaunchedEffect(state.dates) {
+    LaunchedEffect(state.dates.isEmpty()) {
         if (state.dates.isNotEmpty()) {
             val targetIndex = state.dates
                 .indexOfFirst { it >= state.today }
@@ -67,8 +68,8 @@ fun CalendarListView(
         }
     }
 
-    LaunchedEffect(endOfListReached) {
-        if (endOfListReached) {
+    LaunchedEffect(endOfListReached, state.isLoadingFuture) {
+        if (endOfListReached && !state.isLoadingFuture) {
             onLoadMore()
         }
     }
@@ -87,12 +88,14 @@ fun CalendarListView(
                 val dayMovies = state.movies[date] ?: emptyList()
                 val dayEpisodeGroups = state.groupedEpisodes[date] ?: emptyList()
                 val dayAlbums = state.albums[date] ?: emptyList()
+                val dayBooks = state.books[date] ?: emptyList()
 
                 CalendarDaySection(
                     date = date,
                     movies = dayMovies,
                     episodeGroups = dayEpisodeGroups,
-                    albums = dayAlbums
+                    albums = dayAlbums,
+                    books = dayBooks
                 )
             }
         }

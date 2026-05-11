@@ -37,7 +37,7 @@ struct CalendarTabContent: View {
                 if viewModel.calendarState.filterState.viewMode == .list {
                     CalendarListView(state: viewModel.calendarState, onLoadMore: { viewModel.loadMore() })
                 } else {
-                    CalendarMonthView(state: viewModel.calendarState)
+                    CalendarMonthView(state: viewModel.calendarState, onLoadMore: { viewModel.loadMore() })
                 }
             }
         }

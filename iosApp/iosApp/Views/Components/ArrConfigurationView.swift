@@ -13,7 +13,7 @@ struct ArrConfigurationView: View {
     let uiState: AddInstanceUiState
     let onApiEndpointChanged: (String) -> Void
     let onApiKeyChanged: (String) -> Void
-    let onBasicAuthChanged: (Bool) -> Void
+    let onNoApiKeyRequiredChanged: (Bool) -> Void
     let onInstanceLabelChanged: (String) -> Void
     let onIsSlowInstanceChanged: (Bool) -> Void
     let onCustomTimeoutChanged: (Int64?) -> Void
@@ -65,7 +65,9 @@ struct ArrConfigurationView: View {
             }
             
             instanceSection
-            notificationSection
+            if instanceType.supportsNotifications {
+                notificationSection
+            }
             localNetworkArea
             slowInstanceSection
             headersSection
@@ -204,14 +206,14 @@ struct ArrConfigurationView: View {
                 }
             }
             
-            Toggle(MR.strings().use_basic_auth.localized(), isOn: Binding(
-                get: { uiState.basicAuthEnabled },
-                set: { onBasicAuthChanged($0) }
+            Toggle(MR.strings().no_api_key.localized(), isOn: Binding(
+                get: { uiState.noApiKeyRequired },
+                set: { onNoApiKeyRequiredChanged($0) }
             ))
             
             HStack(spacing: 24) {
                 Text(MR.strings().api_key.localized())
-                    .foregroundStyle(!uiState.basicAuthEnabled ? Color.primary.opacity(1.0) : Color.primary.opacity(0.3))
+                    .foregroundStyle(!uiState.noApiKeyRequired ? Color.primary.opacity(1.0) : Color.primary.opacity(0.3))
                 TextField(
                     text: Binding(
                         get: { uiState.apiKey },
@@ -223,7 +225,7 @@ struct ArrConfigurationView: View {
                 ) {
                     EmptyView()
                 }
-                .disabled(uiState.basicAuthEnabled)
+                .disabled(uiState.noApiKeyRequired)
                 .multilineTextAlignment(.trailing)
                 .textInputAutocapitalization(.never)
             }

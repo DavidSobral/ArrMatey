@@ -2,9 +2,12 @@ package com.dnfapps.arrmatey.entensions
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.ManageSearch
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.ArrowCircleDown
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Download
@@ -39,6 +42,7 @@ val ContentFilter.imageVector: ImageVector
         ContentFilter.MoviesOnly -> Icons.Default.Movie
         ContentFilter.EpisodesOnly -> Icons.Default.Tv
         ContentFilter.AlbumsOnly -> Icons.Default.MusicNote
+        ContentFilter.BooksOnly -> Icons.Default.Book
     }
 
 val TabItem.androidIcon: ImageVector
@@ -47,6 +51,7 @@ val TabItem.androidIcon: ImageVector
             TabItem.Standard.SHOWS -> Icons.Default.Tv
             TabItem.Standard.MOVIES -> Icons.Default.Movie
             TabItem.Standard.MUSIC -> Icons.Default.MusicNote
+            TabItem.Standard.BOOKS -> Icons.AutoMirrored.Default.MenuBook
             TabItem.Standard.ACTIVITY -> Icons.Default.Download
             TabItem.Standard.DOWNLOADS -> Icons.Default.CloudDownload
             TabItem.Standard.CALENDAR -> Icons.Default.CalendarMonth
@@ -60,6 +65,7 @@ val TabItem.androidIcon: ImageVector
 val SortBy.androidIcon: ImageVector
     get() = when(this) {
         SortBy.Title -> Icons.Default.SortByAlpha
+        SortBy.TitleLastFirst -> Icons.Default.SortByAlpha
         SortBy.Year -> Icons.Default.CalendarMonth
         SortBy.Added -> Icons.Default.Schedule
         SortBy.Rating -> Icons.Default.Star

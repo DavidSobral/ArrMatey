@@ -10,6 +10,7 @@ import SwiftUI
 
 struct CalendarMonthView: View {
     let state: CalendarState
+    let onLoadMore: () -> Void
     
     @State private var currentMonth: Date
     @State private var selectedDate: LocalDate
@@ -18,8 +19,9 @@ struct CalendarMonthView: View {
         Calendar.current.isDate(currentMonth, equalTo: Date(), toGranularity: .month)
     }
         
-    init(state: CalendarState) {
+    init(state: CalendarState, onLoadMore: @escaping () -> Void) {
         self.state = state
+        self.onLoadMore = onLoadMore
         let today = Date()
         _currentMonth = State(initialValue: today)
         _selectedDate = State(initialValue: state.today)
@@ -71,7 +73,35 @@ struct CalendarMonthView: View {
             }
         }
         .onChange(of: currentMonth) { _, _ in
-            selectedDate = state.today
+            if isCurrentMonth {
+                selectedDate = state.today
+            } else {
+                let components = Calendar.current.dateComponents([.year, .month], from: currentMonth)
+                selectedDate = LocalDate(year: Int32(components.year ?? 2024), month: Int32(components.month ?? 1), day: 1)
+            }
+            checkLoadMore()
+        }
+        .onAppear {
+            checkLoadMore()
+        }
+    }
+    
+    private func checkLoadMore() {
+        guard let monthStart = Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: currentMonth)),
+              let monthRange = Calendar.current.range(of: .day, in: .month, for: monthStart),
+              let lastDayOfMonth = Calendar.current.date(byAdding: .day, value: monthRange.count - 1, to: monthStart) else {
+            return
+        }
+        
+        let components = Calendar.current.dateComponents([.year, .month, .day], from: lastDayOfMonth)
+        let kotlinLastDay = LocalDate(
+            year: Int32(components.year ?? 2024),
+            month: Int32(components.month ?? 1),
+            day: Int32(components.day ?? 1)
+        )
+        
+        if let lastLoadedDate = state.dates.last, kotlinLastDay.compareTo(other: lastLoadedDate) > 0 {
+            onLoadMore()
         }
     }
     
@@ -80,12 +110,14 @@ struct CalendarMonthView: View {
         let dayMovies = state.movies[selectedDate] ?? []
         let dayEpisodeGroups = state.groupedEpisodes[selectedDate] ?? []
         let dayAlbums = state.albums[selectedDate] ?? []
+        let dayBooks = state.books[selectedDate] ?? []
         
         CalendarDaySection(
             date: selectedDate,
             movies: dayMovies,
             episodeGroups: dayEpisodeGroups,
             albums: dayAlbums,
+            books: dayBooks,
             isToday: selectedDate.isEqual(state.today)
         )
     }

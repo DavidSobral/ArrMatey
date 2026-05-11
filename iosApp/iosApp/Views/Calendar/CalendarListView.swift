@@ -84,6 +84,7 @@ struct CalendarListView: View {
         let dayMovies = state.movies[date] ?? []
         let dayEpisodeGroups = state.groupedEpisodes[date] ?? []
         let dayAlbums = state.albums[date] ?? []
+        let dayBooks = state.books[date] ?? []
         
         let isToday = date.isEqual(state.today)
         let key = dateKey(date)
@@ -93,6 +94,7 @@ struct CalendarListView: View {
             movies: dayMovies,
             episodeGroups: dayEpisodeGroups,
             albums: dayAlbums,
+            books: dayBooks,
             isToday: isToday
         )
         .id(date)

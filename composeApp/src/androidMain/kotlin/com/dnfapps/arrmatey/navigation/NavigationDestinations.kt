@@ -3,8 +3,11 @@ package com.dnfapps.arrmatey.navigation
 import androidx.navigation3.runtime.NavKey
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
 import com.dnfapps.arrmatey.arr.api.model.ArrSeries
+import com.dnfapps.arrmatey.arr.api.model.Author
+import com.dnfapps.arrmatey.arr.api.model.Book
 import com.dnfapps.arrmatey.arr.api.model.Episode
 import com.dnfapps.arrmatey.instances.model.InstanceType
+import com.dnfapps.arrmatey.seerr.api.model.RequestType
 
 sealed interface HomeTab : NavKey {
     data object SeriesTab : HomeTab
@@ -19,10 +22,20 @@ sealed interface ArrScreen : NavKey {
     data class Search(val query: String = ""): ArrScreen
     data class MovieReleases(val movieId: Long): ArrScreen
     data class MovieFiles(val movie: ArrMovie): ArrScreen
+    data class AuthorFiles(val author: Author): ArrScreen
     data class EpisodeDetails(val series: ArrSeries, val episode: Episode): ArrScreen
+    data class BookDetails(val author: Author, val book: Book): ArrScreen
     data class SeriesRelease(val seriesId: Long? = null, val seasonNumber: Int? = null, val episodeId: Long? = null): ArrScreen
     data class AlbumRelease(val albumId: Long, val artistId: Long? = null): ArrScreen
+    data class BookRelease(val bookId: Long): ArrScreen
+}
 
+sealed interface SeerrScreen: NavKey {
+    data object Home: SeerrScreen
+    data class Details(
+        val tmdbId: Long,
+        val requestType: RequestType
+    ): SeerrScreen
 }
 
 sealed interface SettingsScreen : NavKey {

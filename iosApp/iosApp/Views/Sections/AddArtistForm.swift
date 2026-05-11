@@ -58,7 +58,7 @@ struct AddArtistForm: View {
         Form {
             Section {
                 Picker(MR.strings().monitor.localized(), selection: $monitor) {
-                    ForEach(selectedStatuses, id: \.self) { status in
+                    ForEach(ArtistMonitorType.allCases, id: \.self) { status in
                         Text(status.resource.localized()).tag(status)
                     }
                 }
@@ -90,7 +90,6 @@ struct AddArtistForm: View {
                         )
                     }
                 }
-                
                 
                 Toggle(MR.strings().search_on_add_label.localized(), isOn: $searchOnAdd)
             }

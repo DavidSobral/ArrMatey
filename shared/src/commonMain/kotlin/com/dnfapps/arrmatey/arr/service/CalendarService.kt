@@ -2,8 +2,11 @@ package com.dnfapps.arrmatey.arr.service
 
 import com.dnfapps.arrmatey.arr.api.model.ArrAlbum
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
+import com.dnfapps.arrmatey.arr.api.model.Author
+import com.dnfapps.arrmatey.arr.api.model.Book
 import com.dnfapps.arrmatey.arr.api.model.Episode
 import com.dnfapps.arrmatey.arr.api.model.EpisodeGroup
+import com.dnfapps.arrmatey.client.NetworkResult
 import com.dnfapps.arrmatey.client.onError
 import com.dnfapps.arrmatey.client.onSuccess
 import com.dnfapps.arrmatey.instances.model.InstanceType
@@ -16,6 +19,7 @@ import dev.shivathapaa.logger.api.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,6 +57,9 @@ class CalendarService(
     private val _albums = MutableStateFlow<Map<LocalDate, List<ArrAlbum>>>(emptyMap())
     val albums: StateFlow<Map<LocalDate, List<ArrAlbum>>> = _albums.asStateFlow()
 
+    private val _books = MutableStateFlow<Map<LocalDate, List<Book>>>(emptyMap())
+    val books: StateFlow<Map<LocalDate, List<Book>>> = _books.asStateFlow()
+
     private val _dates = MutableStateFlow<List<LocalDate>>(emptyList())
     val dates: StateFlow<List<LocalDate>> = _dates.asStateFlow()
 
@@ -83,13 +90,16 @@ class CalendarService(
     }
 
     suspend fun loadMoreDates() {
-        if (_isLoadingFuture.value) return
+        if (_isLoadingFuture.value || _isLoading.value) return
 
-        val lastDate = _dates.value.lastOrNull() ?: return
+        val lastDate = _dates.value.lastOrNull() ?: run {
+            load()
+            return
+        }
 
         _isLoadingFuture.value = true
 
-        val start = lastDate
+        val start = lastDate.plus(1, DateTimeUnit.DAY)
         val end = lastDate.plus(daysRange, DateTimeUnit.DAY)
 
         fetch(start, end)
@@ -107,6 +117,7 @@ class CalendarService(
                         InstanceType.Radarr -> fetchMovies(repository, start, end)
                         InstanceType.Sonarr -> fetchEpisodes(repository, start, end)
                         InstanceType.Lidarr -> fetchAlbums(repository, start, end)
+                        InstanceType.Booksehelf -> fetchBooks(repository, start, end)
                         else -> {}
                     }
                 }
@@ -351,6 +362,72 @@ class CalendarService(
         map[date] = currentList
     }
 
+    private suspend fun fetchBooks(
+        repository: ArrInstanceRepository,
+        start: LocalDate,
+        end: LocalDate
+    ) {
+        val authors = (repository.client.getLibrary() as? NetworkResult.Success)?.data?.filterIsInstance<Author>()?.associateBy { it.id } ?: emptyMap()
+
+        repository.client.getBookCalendar(start, end)
+            .onSuccess { fetchedBooks ->
+                val updatedBooks = fetchedBooks.map { book ->
+                    authors[book.authorId]?.let { author ->
+                        book.copy(authorTitle = author.title)
+                    } ?: book
+                }
+
+                val fetchedIds = updatedBooks.map { it.id.toInt() }.toSet()
+
+                val snapshot = _books.value.values.flatten()
+                scope.launch {
+                    notificationCleanupUseCase.cleanup(
+                        instanceId = repository.instance.id,
+                        currentItems = snapshot,
+                        fetchedIds = fetchedIds,
+                        getId = { it.id.toInt() },
+                        getInstanceId = { it.instanceId }
+                    )
+
+                    _books.update { current ->
+                        val next = current.toMutableMap()
+                        updatedBooks.forEach { book ->
+                            book.releaseDate?.let { instant ->
+                                scheduleNotificationUseCase(
+                                    instance = repository.instance,
+                                    message = "${book.authorTitle ?: "Unknown Author"} - ${book.title}",
+                                    scheduledTime = instant,
+                                    notificationId = book.id.toInt()
+                                )
+                                upsertBook(next, book, instant.toLocalDate())
+                            }
+                        }
+                        next
+                    }
+                }
+            }
+            .onError { _, message, _ ->
+                _error.value = message
+            }
+    }
+
+    private fun upsertBook(
+        map: MutableMap<LocalDate, List<Book>>,
+        book: Book,
+        date: LocalDate
+    ) {
+        val currentList = map[date]?.toMutableList() ?: mutableListOf()
+
+        val existingIndex = currentList.indexOfFirst { it.foreignBookId == book.foreignBookId }
+        if (existingIndex >= 0) {
+            currentList[existingIndex] = book
+        } else {
+            currentList.add(book)
+        }
+
+        map[date] = currentList
+    }
+
     private fun insertDates(start: LocalDate, end: LocalDate) {
         val currentDates = _dates.value.toMutableList()
         var current = start
@@ -373,6 +450,7 @@ class CalendarService(
         _movies.value = emptyMap()
         _episodes.value = emptyMap()
         _albums.value = emptyMap()
+        _books.value = emptyMap()
         _dates.value = emptyList()
         _error.value = null
     }

@@ -8,6 +8,7 @@ import com.dnfapps.arrmatey.arr.api.model.ArrMovie
 import com.dnfapps.arrmatey.arr.api.model.ArrRelease
 import com.dnfapps.arrmatey.arr.api.model.ArrSeries
 import com.dnfapps.arrmatey.arr.api.model.ArrSoftwareStatus
+import com.dnfapps.arrmatey.arr.api.model.Book
 import com.dnfapps.arrmatey.arr.api.model.CommandPayload
 import com.dnfapps.arrmatey.arr.api.model.CommandResponse
 import com.dnfapps.arrmatey.arr.api.model.DownloadReleasePayload
@@ -43,9 +44,10 @@ interface ArrClient {
     suspend fun getReleases(params: ReleaseParams): NetworkResult<List<ArrRelease>>
     suspend fun fetchActivityTasks(page: Int, pageSize: Int): NetworkResult<QueuePage>
     suspend fun deleteActivityTask(id: Int, removeFromClient: Boolean, blocklist: Boolean, skipRedownload: Boolean): NetworkResult<Unit>
-    suspend fun getItemHistory(id: Long, page: Int, pageSize: Int): NetworkResult<List<HistoryItem>>
+    suspend fun getItemHistory(id: Long, page: Int, pageSize: Int, altId: Long? = null): NetworkResult<List<HistoryItem>>
     suspend fun downloadRelease(payload: DownloadReleasePayload): NetworkResult<Any>
     suspend fun getMovieCalendar(start: LocalDate, end: LocalDate): NetworkResult<List<ArrMovie>>
     suspend fun getEpisodeCalendar(start: LocalDate, end: LocalDate): NetworkResult<List<Episode>>
     suspend fun getAlbumCalendar(start: LocalDate, end: LocalDate): NetworkResult<List<ArrAlbum>>
+    suspend fun getBookCalendar(start: LocalDate, end: LocalDate): NetworkResult<List<Book>>
 }

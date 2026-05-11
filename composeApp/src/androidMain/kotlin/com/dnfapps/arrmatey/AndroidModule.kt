@@ -1,9 +1,11 @@
 package com.dnfapps.arrmatey
 
 import coil3.ImageLoader
+import com.dnfapps.arrmatey.navigation.BooksTabNavigation
 import com.dnfapps.arrmatey.navigation.MoviesTabNavigation
 import com.dnfapps.arrmatey.navigation.MusicTabNavigation
 import com.dnfapps.arrmatey.navigation.NavigationManager
+import com.dnfapps.arrmatey.navigation.RequestsTabNavigation
 import com.dnfapps.arrmatey.navigation.SeriesTabNavigation
 import com.dnfapps.arrmatey.navigation.SettingsNavigation
 import com.dnfapps.arrmatey.ui.helpers.ArrImageLoader
@@ -17,8 +19,10 @@ val androidModule = module {
     single { SeriesTabNavigation() }
     single { MoviesTabNavigation() }
     single { MusicTabNavigation() }
+    single { RequestsTabNavigation() }
+    single { BooksTabNavigation() }
 
-    single { NavigationManager(get(), get(), get(), get()) }
+    single { NavigationManager(get(), get(), get(), get(), get(), get()) }
 
     single<ImageLoader> {
         ArrImageLoader(get(), get())

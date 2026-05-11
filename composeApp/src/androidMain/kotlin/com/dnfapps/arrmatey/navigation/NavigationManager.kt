@@ -11,7 +11,9 @@ class NavigationManager(
     private val settingsNavigation: SettingsNavigation,
     private val seriesNavigation: SeriesTabNavigation,
     private val movieNavigation: MoviesTabNavigation,
-    private val musicNavigation: MusicTabNavigation
+    private val musicNavigation: MusicTabNavigation,
+    private val requestsNavigation: RequestsTabNavigation,
+    private val booksNavigation: BooksTabNavigation
 ) {
     private val _drawerExpandedState = MutableStateFlow(false)
     val drawerExpandedState: StateFlow<Boolean> = _drawerExpandedState.asStateFlow()
@@ -26,12 +28,15 @@ class NavigationManager(
     fun series() = seriesNavigation
     fun movies() = movieNavigation
     fun music() = musicNavigation
+    fun requests() = requestsNavigation
+    fun books() = booksNavigation
 
     fun arr(type: InstanceType) = when (type) {
         InstanceType.Sonarr -> seriesNavigation
         InstanceType.Radarr -> movieNavigation
         InstanceType.Lidarr -> musicNavigation
-        else -> TODO()
+        InstanceType.Booksehelf -> booksNavigation
+        else -> throw IllegalStateException("Invalid arr type $type")
     }
 
     fun setSelectedTab(tab: TabItem) {

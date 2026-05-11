@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 fun ArrAppBarWithSearch(
     textFieldState: TextFieldState,
     modifier: Modifier = Modifier,
+    inputFieldModifier: Modifier = Modifier,
     textFieldEnabled: Boolean = true,
     searchBarState: SearchBarState = rememberSearchBarState(),
     searchPlaceholder: String = mokoString(MR.strings.search),
@@ -53,6 +54,7 @@ fun ArrAppBarWithSearch(
     val inputField =
         @Composable {
             SearchBarDefaults.InputField(
+                modifier = inputFieldModifier,
                 textFieldState = textFieldState,
                 searchBarState = searchBarState,
                 enabled = textFieldEnabled,

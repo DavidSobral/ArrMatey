@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.dnfapps.arrmatey.instances.model.InstanceHeader
+import com.dnfapps.arrmatey.utils.getNetworkUtils
 
 @Entity(
     tableName = "download_clients",
@@ -20,8 +21,43 @@ data class DownloadClient(
     val username: String = "",
     val password: String = "",
     val apiKey: String = "",
-    val basicAuthEnabled: Boolean = false,
-    val enabled: Boolean = true,
+    val noApiKeyRequired: Boolean = false,
     val selected: Boolean = false,
-    val headers: List<InstanceHeader> = emptyList()
-)
+    val headers: List<InstanceHeader> = emptyList(),
+
+    val localNetworkEnabled: Boolean = false,
+    val localNetworkSsids: List<String> = emptyList(),
+    val localNetworkEndpoint: String? = null
+) {
+
+    fun getEffectiveBaseUrl(): String {
+        if (!localNetworkEnabled ||
+            localNetworkSsids.isEmpty() ||
+            localNetworkEndpoint.isNullOrBlank()
+        ) {
+            return url
+        }
+        return try {
+            val currentSsid = getNetworkUtils().getCurrentWifiSsid()
+            if (currentSsid != null && localNetworkSsids.any { it.equals(currentSsid, ignoreCase = true) }) {
+                localNetworkEndpoint
+            } else {
+                url
+            }
+        } catch (e: Exception) {
+            url
+        }
+    }
+
+    fun isUsingLocalNetwork(): Boolean {
+        return try {
+            val currentSsid = getNetworkUtils().getCurrentWifiSsid()
+            localNetworkEnabled &&
+                    !localNetworkEndpoint.isNullOrBlank() &&
+                    currentSsid != null &&
+                    localNetworkSsids.any { it.equals(currentSsid, ignoreCase = true) }
+        } catch (e: Exception) {
+            false
+        }
+    }
+}

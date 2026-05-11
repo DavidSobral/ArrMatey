@@ -10,6 +10,7 @@ import Shared
 
 struct MovieDetailsView: View {
     let item: ArrMovie
+    let isActive: Bool
     
     private var releaseDateString: String? {
         guard let releaseDate = item.releaseDate else { return nil }
@@ -60,6 +61,14 @@ struct MovieDetailsView: View {
             .joined(separator: " • ")
     }
     
+    private var progressColor: Color {
+        if isActive {
+            return .arrPurple
+        } else {
+            return statusColor
+        }
+    }
+    
     private var statusColor: Color {
         switch item.status {
         case .released:
@@ -78,24 +87,21 @@ struct MovieDetailsView: View {
             if let releaseDateString = releaseDateString {
                 Text(releaseDateString)
                     .font(.system(size: 14))
-                    .foregroundColor(.white)
                     .lineSpacing(4)
             }
             
             Text(firstLine)
                 .font(.system(size: 14))
-                .foregroundColor(.white)
                 .lineSpacing(4)
             
             Text(secondLine)
                 .font(.system(size: 14))
-                .foregroundColor(.white)
                 .lineSpacing(4)
             
             Spacer()
             
             ProgressView(value: item.statusProgress)
-                .progressViewStyle(LinearProgressViewStyle(tint: statusColor))
+                .progressViewStyle(LinearProgressViewStyle(tint: progressColor))
                 .frame(height: 6)
         }
     }

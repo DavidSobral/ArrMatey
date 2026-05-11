@@ -12,6 +12,9 @@ struct AddEditDownloadClientScreen: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var confirmDelete: Bool = false
+    
+    @StateObject private var permissionHandler = LocationPermissionHandler()
+    @State private var showRationale = false
 
     init(id: Int64? = nil) {
         self.viewModel = DownloadClientSettingsViewModelS(id: id)
@@ -57,16 +60,8 @@ struct AddEditDownloadClientScreen: View {
         Form {
             typeSection
             authSection
+            localNetworkSection
             headersSection
-            Section {
-                Toggle(
-                    MR.strings().client_enabled.localized(),
-                    isOn: Binding(
-                        get: { viewModel.uiState.enabled },
-                        set: { viewModel.updateEnabled($0) }
-                    )
-                )
-            }
         }
     }
     
@@ -161,14 +156,14 @@ struct AddEditDownloadClientScreen: View {
                 .textInputAutocapitalization(.never)
             }
             
-            Toggle(MR.strings().use_basic_auth.localized(), isOn: Binding(
-                get: { viewModel.uiState.basicAuthEnabled },
-                set: { viewModel.updateBasicAuthEnabled($0) }
+            Toggle(MR.strings().no_api_key.localized(), isOn: Binding(
+                get: { viewModel.uiState.noApiKeyRequired },
+                set: { viewModel.updateNoApiKeyRequired($0) }
             ))
             
             HStack(spacing: 24) {
                 Text(MR.strings().client_api_key.localized()).layoutPriority(2)
-                    .foregroundStyle(viewModel.uiState.basicAuthEnabled ? Color.primary.opacity(1.0) : Color.primary.opacity(0.3))
+                    .foregroundStyle(viewModel.uiState.noApiKeyRequired ? Color.primary.opacity(1.0) : Color.primary.opacity(0.3))
                 TextField(
                     text: Binding(
                         get: { viewModel.uiState.apiKey },
@@ -177,10 +172,153 @@ struct AddEditDownloadClientScreen: View {
                 ) {
                     EmptyView()
                 }
-                .disabled(viewModel.uiState.basicAuthEnabled)
+                .disabled(viewModel.uiState.noApiKeyRequired)
                 .multilineTextAlignment(.trailing)
                 .textInputAutocapitalization(.never)
             }
+            
+            HStack {
+                Button(action: {
+                    viewModel.testConnection()
+                }) {
+                    if viewModel.uiState.isTesting && !viewModel.uiState.localTesting {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                    } else {
+                        Text(MR.strings().test.localized())
+                    }
+                }
+                .disabled(viewModel.uiState.isTesting || viewModel.uiState.url.isEmpty)
+                
+                Spacer()
+                
+                if let testResult = viewModel.uiState.testResult?.boolValue {
+                    HStack(spacing: 4) {
+                        Text(testResult ? MR.strings().success.localized() : MR.strings().failure.localized())
+                            .foregroundColor(testResult ? .green : .red)
+                            .multilineTextAlignment(.trailing)
+                    }
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var localNetworkSection: some View {
+        Section {
+            Toggle(isOn: Binding(
+                get: { viewModel.uiState.localNetworkEnabled },
+                set: { newValue in
+                    viewModel.updateLocalNetworkEnabled(newValue)
+                    if newValue && !permissionHandler.isGranted() {
+                        showRationale = true
+                    }
+                }
+            )) {
+                Text(MR.strings().use_local_network.localized())
+            }
+                
+            if viewModel.uiState.localNetworkEnabled {
+                if !permissionHandler.isGranted() && permissionHandler.authorizationStatus != .notDetermined {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(MR.strings().location_denied_message.localized())
+                            .font(.subheadline).foregroundColor(.red)
+                        
+                        Button(action: {
+                            if let url = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(url)
+                            }
+                        }) {
+                            Text(MR.strings().open_location_permissions.localized())
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                } else if permissionHandler.isGranted() {
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack(spacing: 24) {
+                            Text(MR.strings().host.localized()).layoutPriority(2)
+                            TextField("http://192.168.1.100:\(viewModel.uiState.selectedType.defaultPort)",
+                                      text: Binding(
+                                        get: { viewModel.uiState.localNetworkEndpoint },
+                                        set: { viewModel.updateLocalNetworkUrl($0) }
+                                      ))
+                            .multilineTextAlignment(.trailing)
+                            .textInputAutocapitalization(.never)
+                        }
+                        
+                        if viewModel.uiState.localNetworkEndpointError {
+                            Text(MR.strings().invalid_url.localized())
+                                .font(.caption).foregroundColor(.red)
+                        }
+                    }
+                            
+                    VStack {
+                        HStack(spacing: 24) {
+                            Text(MR.strings().wifi_network_name.localized()).layoutPriority(2)
+                            TextField("MyHomeWiFi, MyGuestWiFi",
+                                      text: Binding(
+                                        get: { viewModel.uiState.localNetworkSsids.joined(separator: ", ") },
+                                        set: { newValue in
+                                            let ssids = newValue.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+                                            viewModel.updateLocalNetworkSsids(ssids)
+                                        }
+                                      ))
+                            .multilineTextAlignment(.trailing)
+                        }
+                    }
+                            
+                    Button(action: {
+                        if let ssid = NetworkUtilsKt.getNetworkUtils().getCurrentWifiSsid() {
+                            var currentSsids = viewModel.uiState.localNetworkSsids
+                            if !currentSsids.contains(ssid) {
+                                currentSsids.append(ssid)
+                                viewModel.updateLocalNetworkSsids(currentSsids)
+                            }
+                        }
+                    }) {
+                        Label(MR.strings().use_current_network.localized(), systemImage: "wifi")
+                    }
+                            
+                    HStack {
+                        Button(action: {
+                            viewModel.testLocalConnection()
+                        }) {
+                            if viewModel.uiState.localTesting {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                            } else {
+                                Text(MR.strings().test.localized())
+                            }
+                        }
+                        .disabled(viewModel.uiState.localTesting || viewModel.uiState.localNetworkEndpoint.isEmpty || viewModel.uiState.localNetworkSsids.isEmpty)
+                        
+                        Spacer()
+                        
+                        if let localTestResult = viewModel.uiState.localTestResult?.boolValue {
+                            HStack(spacing: 4) {
+                                Text(localTestResult ? MR.strings().success.localized() : MR.strings().failure.localized())
+                                    .foregroundColor(localTestResult ? .green : .red)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                        }
+                    }
+                }
+            }
+        } header: {
+            Text(MR.strings().local_network_switching.localized())
+        } footer: {
+            Text(MR.strings().local_network_description.localized())
+        }
+        .alert(MR.strings().location_rationale_title.localized(), isPresented: $showRationale) {
+            Button(MR.strings().confirm.localized()) {
+                permissionHandler.checkAndPerformAction()
+            }
+            Button(MR.strings().cancel.localized(), role: .cancel) {
+                viewModel.updateLocalNetworkEnabled(false)
+            }
+        } message: {
+            Text(MR.strings().location_rationale_description_ios.localized())
         }
     }
     

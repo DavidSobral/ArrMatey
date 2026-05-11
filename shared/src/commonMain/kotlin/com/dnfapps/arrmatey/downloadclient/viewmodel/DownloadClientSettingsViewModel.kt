@@ -59,10 +59,12 @@ class DownloadClientSettingsViewModel(
                             username = client.username,
                             password = client.password,
                             apiKey = client.apiKey,
-                            basicAuthEnabled = client.basicAuthEnabled,
+                            noApiKeyRequired = client.noApiKeyRequired,
                             headers = client.headers,
-                            enabled = client.enabled,
-                            isEditing = true
+                            isEditing = true,
+                            localNetworkEnabled = client.localNetworkEnabled,
+                            localNetworkSsids = client.localNetworkSsids,
+                            localNetworkEndpoint = client.localNetworkEndpoint ?: ""
                         )
                     }
                 }
@@ -82,40 +84,60 @@ class DownloadClientSettingsViewModel(
         _uiState.update {
             it.copy(
                 url = url,
-                saveButtonEnabled = url.isNotEmpty() && (it.basicAuthEnabled || it.apiKey.isNotEmpty())
+                saveButtonEnabled = url.isNotEmpty() &&
+                        (it.noApiKeyRequired || it.apiKey.isNotEmpty()
+                                || (it.username.isNotEmpty() && it.password.isNotEmpty()))
             )
         }
     }
 
     fun updateUsername(username: String) {
         _uiState.update {
-            it.copy(username = username)
+            it.copy(
+                username = username,
+                saveButtonEnabled = it.url.isNotEmpty() &&
+                        (it.noApiKeyRequired || it.apiKey.isNotEmpty()
+                                || (username.isNotEmpty() && it.password.isNotEmpty()))
+            )
         }
     }
 
     fun updatePassword(password: String) {
         _uiState.update {
-            it.copy(password = password)
+            it.copy(
+                password = password,
+                saveButtonEnabled = it.url.isNotEmpty() &&
+                        (it.noApiKeyRequired || it.apiKey.isNotEmpty()
+                                || (it.username.isNotEmpty() && password.isNotEmpty()))
+            )
         }
     }
 
     fun updateApiKey(apiKey: String) {
         _uiState.update {
-            val newApiKey = if (it.basicAuthEnabled) "" else apiKey
+            val newApiKey = if (it.noApiKeyRequired) "" else apiKey
             it.copy(
                 apiKey = newApiKey,
-                saveButtonEnabled = it.url.isNotEmpty() && (it.basicAuthEnabled || newApiKey.isNotEmpty())
+                saveButtonEnabled = it.url.isNotEmpty() &&
+                        (it.noApiKeyRequired || newApiKey.isNotEmpty()
+                                || (!it.username.isNotEmpty() && !it.password.isNotEmpty()))
             )
         }
     }
 
-    fun updateBasicAuthEnabled(enabled: Boolean) {
+    fun updateNoApiKeyRequired(enabled: Boolean) {
         _uiState.update {
             val newApiKey = if (enabled) "" else it.apiKey
+            val newUsername = if (enabled) "" else it.username
+            val newPassword = if (enabled) "" else it.password
             it.copy(
-                basicAuthEnabled = enabled,
+                noApiKeyRequired = enabled,
                 apiKey = newApiKey,
-                saveButtonEnabled = it.url.isNotEmpty() && (enabled || newApiKey.isNotEmpty())
+                username = newUsername,
+                password = newPassword,
+                saveButtonEnabled = it.url.isNotEmpty() &&
+                        (enabled || newApiKey.isNotEmpty()
+                                || (!newUsername.isNotEmpty() && !newPassword.isNotEmpty()))
             )
         }
     }
@@ -124,8 +146,78 @@ class DownloadClientSettingsViewModel(
         _uiState.update { it.copy(headers = headers) }
     }
 
-    fun updateEnabled(enabled: Boolean) {
-        _uiState.update { it.copy(enabled = enabled) }
+    fun updateLocalNetworkEnabled(enabled: Boolean) {
+        _uiState.update { it.copy(localNetworkEnabled = enabled) }
+    }
+
+    fun updateLocalNetworkUrl(url: String) {
+        _uiState.update { it.copy(localNetworkEndpoint = url, localNetworkEndpointError = false) }
+    }
+
+    fun updateLocalNetworkSsid(ssids: List<String>) {
+        _uiState.update { it.copy(localNetworkSsids = ssids) }
+    }
+
+    fun testConnection() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isTesting = true, testResult = null) }
+            val client = buildDownloadClient()
+            val resultFlow = testDownloadClientConnectionUseCase(client)
+            resultFlow.collect { status ->
+                if (status !is OperationStatus.InProgress) {
+                    _uiState.update {
+                        it.copy(
+                            isTesting = false,
+                            testResult = status is OperationStatus.Success
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun testLocalConnection() {
+        viewModelScope.launch {
+            if (!uiState.value.localNetworkEndpoint.isValidUrl()) {
+                _uiState.update { it.copy(localNetworkEndpointError = true) }
+                return@launch
+            }
+            _uiState.update { it.copy(localTesting = true, localTestResult = null) }
+            val client = buildDownloadClient().copy(
+                url = uiState.value.localNetworkEndpoint,
+                localNetworkEnabled = false // Force use current URL
+            )
+            val resultFlow = testDownloadClientConnectionUseCase(client)
+            resultFlow.collect { status ->
+                if (status !is OperationStatus.InProgress) {
+                    _uiState.update {
+                        it.copy(
+                            localTesting = false,
+                            localTestResult = status is OperationStatus.Success
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun buildDownloadClient(): DownloadClient {
+        return DownloadClient(
+            id = downloadClient.value?.id ?: 0,
+            type = uiState.value.selectedType,
+            label = uiState.value.label.takeUnless { it.isEmpty() }
+                ?: uiState.value.selectedType.displayName,
+            url = uiState.value.url,
+            username = uiState.value.username,
+            password = uiState.value.password,
+            apiKey = uiState.value.apiKey,
+            noApiKeyRequired = uiState.value.noApiKeyRequired,
+            headers = uiState.value.headers.filter { it.key.isNotEmpty() && it.value.isNotEmpty() },
+            selected = downloadClient.value?.selected ?: false,
+            localNetworkEnabled = uiState.value.localNetworkEnabled,
+            localNetworkSsids = uiState.value.localNetworkSsids,
+            localNetworkEndpoint = uiState.value.localNetworkEndpoint
+        )
     }
 
     fun deleteClient() {
@@ -152,20 +244,7 @@ class DownloadClientSettingsViewModel(
     }
 
     fun submit() {
-        val newClient = DownloadClient(
-            id = downloadClient.value?.id ?: 0,
-            type = uiState.value.selectedType,
-            label = uiState.value.label.takeUnless { it.isEmpty() }
-                ?: uiState.value.selectedType.displayName,
-            url = uiState.value.url,
-            username = uiState.value.username,
-            password = uiState.value.password,
-            apiKey = uiState.value.apiKey,
-            basicAuthEnabled = uiState.value.basicAuthEnabled,
-            headers = uiState.value.headers.filter { it.key.isNotEmpty() && it.value.isNotEmpty() },
-            enabled = uiState.value.enabled,
-            selected = downloadClient.value?.selected ?: false
-        )
+        val newClient = buildDownloadClient()
 
         if (uiState.value.isEditing) {
             updateClient(newClient)

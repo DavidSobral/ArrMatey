@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -70,11 +69,14 @@ class InstanceManager(
         logger: Logger
     ): InstanceScopedRepository {
         return when (instance.type) {
-//            InstanceType.Seerr -> SeerrInstanceRepository(instance, httpClient)
+            InstanceType.Seerr -> SeerrInstanceRepository(instance, httpClient)
+
             InstanceType.Prowlarr -> ProwlarrInstanceRepository(instance, httpClient)
+
             InstanceType.Sonarr,
             InstanceType.Radarr,
-            InstanceType.Lidarr -> ArrInstanceRepository(instance, httpClient, logger)
+            InstanceType.Lidarr,
+            InstanceType.Booksehelf -> ArrInstanceRepository(instance, httpClient, logger)
         }
     }
 
@@ -97,11 +99,11 @@ class InstanceManager(
                 else _instanceRepositories.map { repos -> repos[instance.id] as? ArrInstanceRepository }
             }
 
-    fun getSelectedSeerrRepository(): Flow<SeerrInstanceRepository?> = flow { emit(null) }
-    //        instanceRepository.observeSelectedInstance(InstanceType.Seerr)
-//            .map { instance ->
-//                instance?.let { getSeerrRepository(it.id) }
-//            }
+    fun getSelectedSeerrRepository(): Flow<SeerrInstanceRepository?> =
+        instanceRepository.observeSelectedInstance(InstanceType.Seerr)
+            .map { instance ->
+                instance?.let { getSeerrRepository(it.id) }
+            }
 
     fun getSelectedProwlarrRepository(): Flow<ProwlarrInstanceRepository?> =
         instanceRepository.observeSelectedInstance(InstanceType.Prowlarr)

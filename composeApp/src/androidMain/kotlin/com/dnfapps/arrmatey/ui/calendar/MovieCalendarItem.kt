@@ -23,9 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dnfapps.arrmatey.arr.api.model.ArrMovie
+import com.dnfapps.arrmatey.compose.utils.breakable
 import com.dnfapps.arrmatey.entensions.Bullet
+import com.dnfapps.arrmatey.extensions.isEqual
 import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.ui.components.PosterItem
+import com.dnfapps.arrmatey.ui.theme.ArrOrange
 import com.dnfapps.arrmatey.utils.mokoString
 import kotlinx.datetime.LocalDate
 import kotlin.time.ExperimentalTime
@@ -41,7 +44,7 @@ fun MovieCalendarItem(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = ArrOrange
         )
     ) {
         Row(
@@ -54,8 +57,8 @@ fun MovieCalendarItem(
             PosterItem(movie, Modifier.width(50.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = movie.title ?: mokoString(MR.strings.unknown),
-                    style = MaterialTheme.typography.titleSmall,
+                    text = movie.title?.breakable() ?: mokoString(MR.strings.unknown),
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium
                 )
 
@@ -64,19 +67,19 @@ fun MovieCalendarItem(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (movie.inCinemas == date) {
+                    if (movie.inCinemas?.isEqual(date) == true) {
                         Text(
                             text = mokoString(MR.strings.in_cinemas),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
-                    if (movie.digitalRelease == date) {
+                    if (movie.digitalRelease?.isEqual(date) == true) {
                         Text(
                             text = mokoString(MR.strings.digital_release),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
-                    if (movie.physicalRelease == date) {
+                    if (movie.physicalRelease?.isEqual(date) == true) {
                         Text(
                             text = mokoString(MR.strings.physical_release),
                             style = MaterialTheme.typography.bodySmall

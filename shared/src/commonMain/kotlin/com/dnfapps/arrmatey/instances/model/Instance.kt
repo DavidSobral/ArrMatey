@@ -3,6 +3,7 @@ package com.dnfapps.arrmatey.instances.model
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.dnfapps.arrmatey.arr.api.model.MockMedia
 import com.dnfapps.arrmatey.shared.MR
 import com.dnfapps.arrmatey.utils.AspectRatio
 import com.dnfapps.arrmatey.utils.getNetworkUtils
@@ -22,7 +23,7 @@ data class Instance(
     val label: String,
     val url: String,
     val apiKey: String,
-    val basicAuthEnabled: Boolean = false,
+    val noApiKeyRequired: Boolean = false,
     val enabled: Boolean = true,
     val slowInstance: Boolean = false,
     val customTimeout: Long? = null,
@@ -79,7 +80,9 @@ enum class InstanceType(
     val testEndpoint: String,
     val includeTopLevelAutomaticSearchOption: Boolean,
     val aspectRatio: AspectRatio,
-    val supportsNotifications: Boolean
+    val supportsNotifications: Boolean,
+    val mockCover: ImageResource? = null,
+    val mockMedia: MockMedia = MockMedia.Default
 ) {
     Sonarr(
         resource = MR.strings.sonarr_description,
@@ -93,7 +96,9 @@ enum class InstanceType(
         testEndpoint = "system/status",
         includeTopLevelAutomaticSearchOption = true,
         aspectRatio = AspectRatio.Poster,
-        supportsNotifications = true
+        supportsNotifications = true,
+        mockCover = MR.images.sonarr_mock_poster,
+        mockMedia = MockMedia.Sonarr
     ),
     Radarr(
         resource = MR.strings.radarr_description,
@@ -107,7 +112,9 @@ enum class InstanceType(
         testEndpoint = "system/status",
         includeTopLevelAutomaticSearchOption = false,
         aspectRatio = AspectRatio.Poster,
-        supportsNotifications = true
+        supportsNotifications = true,
+        mockCover = MR.images.radarr_mock_poster,
+        mockMedia = MockMedia.Radarr
     ),
     Lidarr(
         resource = MR.strings.lidarr_description,
@@ -121,7 +128,39 @@ enum class InstanceType(
         testEndpoint = "system/status",
         includeTopLevelAutomaticSearchOption = true,
         aspectRatio = AspectRatio.Cover,
-        supportsNotifications = true
+        supportsNotifications = true,
+        mockCover = MR.images.lidarr_mock_cover,
+        mockMedia = MockMedia.Lidarr
+    ),
+    Booksehelf(
+        resource = MR.strings.bookshelf_description,
+        github = "https://github.com/pennydreadful/bookshelf",
+        website = "https://github.com/pennydreadful/bookshelf",
+        icon = MR.images.bookshelf,
+        tabIcon = MR.images.bookshelf_tab,
+        defaultPort = 8787,
+        supportsActivityQueue = true,
+        apiBase = "api/v1",
+        testEndpoint = "system/status",
+        includeTopLevelAutomaticSearchOption = true,
+        aspectRatio = AspectRatio.Cover,
+        supportsNotifications = true,
+        mockCover = MR.images.readarr_mock_cover,
+        mockMedia = MockMedia.Readarr
+    ),
+    Seerr(
+        resource = MR.strings.seerr_description,
+        github = "https://github.com/seerr-team/seerr",
+        website = "https://docs.seerr.dev/",
+        icon = MR.images.seerr,
+        tabIcon = MR.images.seerr_tab,
+        defaultPort = 5055,
+        supportsActivityQueue = false,
+        apiBase = "api/v1",
+        testEndpoint = "auth/me",
+        includeTopLevelAutomaticSearchOption = false,
+        aspectRatio = AspectRatio.Poster,
+        supportsNotifications = false
     ),
     Prowlarr(
         resource = MR.strings.prowlarr_description,
@@ -137,16 +176,4 @@ enum class InstanceType(
         aspectRatio = AspectRatio.Cover,
         supportsNotifications = false
     )
-//    Seerr(
-//        resource = MR.strings.seerr_description,
-//        github = "https://github.com/seerr-team/seerr",
-//        website = "https://docs.seerr.dev/",
-//        iconKey = "seerr",
-//        defaultPort = 5055,
-//        supportsActivityQueue = false,
-//        apiBase = "api/v1",
-//        testEndpoint = "auth/me",
-//        includeTopLevelAutomaticSearchOption = false,
-//        aspectRatio = AspectRatio.Poster
-//    )
 }

@@ -28,7 +28,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dnfapps.arrmatey.arr.viewmodel.AddInstanceViewModel
@@ -37,7 +36,6 @@ import com.dnfapps.arrmatey.instances.model.InstanceType
 import com.dnfapps.arrmatey.navigation.SettingsNavigation
 import com.dnfapps.arrmatey.ui.components.DropdownPicker
 import com.dnfapps.arrmatey.ui.components.InstanceInfoCard
-import com.dnfapps.arrmatey.utils.NetworkUtils
 import com.dnfapps.arrmatey.utils.mokoString
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -136,7 +134,7 @@ fun AddInstanceScreen(
                 uiState = uiState,
                 onApiEndpointChanged = { viewModel.setApiEndpoint(it) },
                 onApiKeyChanged = { viewModel.setApiKey(it) },
-                onBasicAuthEnabledChanged = { viewModel.setBasicAuthEnabled(it) },
+                onNoApiKeyRequiredChanged = { viewModel.setNoApiKeyRequired(it) },
                 onInstanceLabelChanged = { viewModel.setInstanceLabel(it) },
                 onIsSlowInstanceChanged = { viewModel.setIsSlowInstance(it) },
                 onCustomTimeoutChanged = { viewModel.setCustomTimeout(it) },

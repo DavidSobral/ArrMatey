@@ -3,17 +3,22 @@ package com.dnfapps.arrmatey.di
 import com.dnfapps.arrmatey.arr.api.client.DynamicLogger
 import com.dnfapps.arrmatey.arr.api.client.GenericClient
 import com.dnfapps.arrmatey.arr.api.client.HttpClientFactory
+import com.dnfapps.arrmatey.arr.api.model.Book
 import com.dnfapps.arrmatey.arr.api.model.Episode
 import com.dnfapps.arrmatey.arr.service.ActivityQueueService
 import com.dnfapps.arrmatey.arr.service.CalendarService
 import com.dnfapps.arrmatey.arr.usecase.AddMediaItemUseCase
 import com.dnfapps.arrmatey.arr.usecase.DeleteAlbumFilesUseCase
+import com.dnfapps.arrmatey.arr.usecase.DeleteBookFilesUseCase
 import com.dnfapps.arrmatey.arr.usecase.DeleteEpisodeFileUseCase
 import com.dnfapps.arrmatey.arr.usecase.DeleteMediaUseCase
 import com.dnfapps.arrmatey.arr.usecase.DeleteQueueItemUseCase
 import com.dnfapps.arrmatey.arr.usecase.DeleteSeasonFilesUseCase
 import com.dnfapps.arrmatey.arr.usecase.DownloadReleaseUseCase
 import com.dnfapps.arrmatey.arr.usecase.GetActivityTasksUseCase
+import com.dnfapps.arrmatey.arr.usecase.GetAuthorFilesUseCase
+import com.dnfapps.arrmatey.arr.usecase.GetBookEditionUseCase
+import com.dnfapps.arrmatey.arr.usecase.GetBookHistoryUseCase
 import com.dnfapps.arrmatey.arr.usecase.GetCalendarUseCase
 import com.dnfapps.arrmatey.arr.usecase.GetEpisodeHistoryUseCase
 import com.dnfapps.arrmatey.arr.usecase.GetLibraryUseCase
@@ -36,6 +41,8 @@ import com.dnfapps.arrmatey.arr.viewmodel.ArrInstanceDashboardViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.ArrMediaDetailsViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.ArrMediaViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.ArrSearchViewModel
+import com.dnfapps.arrmatey.arr.viewmodel.AuthorFilesViewModel
+import com.dnfapps.arrmatey.arr.viewmodel.BookDetailsViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.CalendarViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.EditInstanceViewModel
 import com.dnfapps.arrmatey.arr.viewmodel.EpisodeDetailsViewModel
@@ -69,6 +76,7 @@ import com.dnfapps.arrmatey.downloadclient.usecase.RefreshDownloadQueueUseCase
 import com.dnfapps.arrmatey.downloadclient.usecase.ResumeDownloadUseCase
 import com.dnfapps.arrmatey.downloadclient.usecase.SetDownloadClientActiveUseCase
 import com.dnfapps.arrmatey.downloadclient.usecase.TestDownloadClientConnectionUseCase
+import com.dnfapps.arrmatey.downloadclient.usecase.UpdateDownloadClientPreferencesUseCase
 import com.dnfapps.arrmatey.downloadclient.usecase.UpdateDownloadClientUseCase
 import com.dnfapps.arrmatey.downloadclient.viewmodel.DownloadClientSettingsViewModel
 import com.dnfapps.arrmatey.downloadclient.viewmodel.DownloadClientsViewModel
@@ -83,6 +91,7 @@ import com.dnfapps.arrmatey.instances.usecase.GetInstanceByIdUseCase
 import com.dnfapps.arrmatey.instances.usecase.GetProwlarrInstanceRepositoryUseCase
 import com.dnfapps.arrmatey.instances.usecase.GetSeerrInstanceRepositoryUseCase
 import com.dnfapps.arrmatey.instances.usecase.ObserveAllInstancesByTypeUseCase
+import com.dnfapps.arrmatey.instances.usecase.ObserveDownloadClientPreferencesUseCase
 import com.dnfapps.arrmatey.instances.usecase.ObserveScopedReposByTypeUseCase
 import com.dnfapps.arrmatey.instances.usecase.ObserveSelectedInstanceScopedRepoUseCase
 import com.dnfapps.arrmatey.instances.usecase.ObserveSelectedInstanceUseCase
@@ -90,14 +99,29 @@ import com.dnfapps.arrmatey.instances.usecase.SetInstanceActiveUseCase
 import com.dnfapps.arrmatey.instances.usecase.TestInstanceConnectionUseCase
 import com.dnfapps.arrmatey.instances.usecase.TestNewInstanceConnectionUseCase
 import com.dnfapps.arrmatey.instances.usecase.UpdateCalendarFilterPreferenceUseCase
+import com.dnfapps.arrmatey.seerr.api.model.RequestType
+import com.dnfapps.arrmatey.seerr.usecase.CancelRequestUseCase
 import com.dnfapps.arrmatey.instances.usecase.UpdateInstancePreferencesUseCase
 import com.dnfapps.arrmatey.instances.usecase.UpdateInstanceUseCase
 import com.dnfapps.arrmatey.logging.FileSink
+import com.dnfapps.arrmatey.seerr.api.model.MediaIssuePackage
+import com.dnfapps.arrmatey.seerr.usecase.CloseIssueUseCase
 import com.dnfapps.arrmatey.notifications.NotificationCleanupUseCase
 import com.dnfapps.arrmatey.notifications.ScheduleNotificationUseCase
 import com.dnfapps.arrmatey.seerr.usecase.GetCurrentSeerrUserUseCase
+import com.dnfapps.arrmatey.seerr.usecase.GetIssueDetailsUseCase
+import com.dnfapps.arrmatey.seerr.usecase.GetIssuesUseCase
 import com.dnfapps.arrmatey.seerr.usecase.GetRequestsUseCase
+import com.dnfapps.arrmatey.seerr.usecase.GetSeerrMediaDetailsUseCase
+import com.dnfapps.arrmatey.seerr.usecase.GetSeerrMovieRatingsUseCase
+import com.dnfapps.arrmatey.seerr.usecase.GetSeerrTvRatingsUseCase
+import com.dnfapps.arrmatey.seerr.usecase.RemoveSeerrMediaFileUseCase
+import com.dnfapps.arrmatey.seerr.usecase.SetRequestApprovalStatusUseCase
+import com.dnfapps.arrmatey.seerr.usecase.SubmitIssueCommentUseCase
+import com.dnfapps.arrmatey.seerr.usecase.SubmitIssueUseCase
+import com.dnfapps.arrmatey.seerr.viewmodel.IssueDetailsViewModel
 import com.dnfapps.arrmatey.seerr.viewmodel.RequestsViewModel
+import com.dnfapps.arrmatey.seerr.viewmodel.SeerrMediaDetailsViewModel
 import com.dnfapps.arrmatey.utils.MokoStrings
 import com.dnfapps.arrmatey.utils.NetworkConnectivityObserverFactory
 import com.dnfapps.arrmatey.utils.NetworkConnectivityRepository
@@ -143,6 +167,7 @@ val networkModule = module {
             isLenient = true
             ignoreUnknownKeys = true
             encodeDefaults = true
+            explicitNulls = false
         }
     }
 
@@ -222,6 +247,16 @@ val useCaseModule = module {
     factory { GetSeerrInstanceRepositoryUseCase(get()) }
     factory { GetCurrentSeerrUserUseCase() }
     factory { GetRequestsUseCase() }
+    factory { GetIssuesUseCase() }
+    factory { GetIssueDetailsUseCase(get()) }
+    factory { SubmitIssueUseCase(get()) }
+    factory { SubmitIssueCommentUseCase(get()) }
+    factory { CancelRequestUseCase() }
+    factory { SetRequestApprovalStatusUseCase() }
+    factory { RemoveSeerrMediaFileUseCase() }
+    factory { GetSeerrMediaDetailsUseCase() }
+    factory { GetSeerrMovieRatingsUseCase(get()) }
+    factory { GetSeerrTvRatingsUseCase(get()) }
     factory { ObserveDownloadClientsUseCase(get()) }
     factory { ObserveDownloadQueueUseCase(get()) }
     factory { PauseDownloadUseCase(get()) }
@@ -240,8 +275,15 @@ val useCaseModule = module {
     factory { AddCustomWebpageUseCase(get()) }
     factory { UpdateCustomWebpageUseCase(get()) }
     factory { DeleteCustomWebpageUseCase(get()) }
+    factory { CloseIssueUseCase(get()) }
     factory { NotificationCleanupUseCase(get()) }
     factory { ScheduleNotificationUseCase(get(), get()) }
+    factory { DeleteBookFilesUseCase() }
+    factory { GetAuthorFilesUseCase(get()) }
+    factory { GetBookEditionUseCase() }
+    factory { GetBookHistoryUseCase() }
+    factory { UpdateDownloadClientPreferencesUseCase(get()) }
+    factory { ObserveDownloadClientPreferencesUseCase(get()) }
 }
 
 val viewModelModule = module {
@@ -279,10 +321,13 @@ val viewModelModule = module {
         ArrInstanceDashboardViewModel(instanceId, get())
     }
     factory { CalendarViewModel(get(), get(), get(), get()) }
+    factory { RequestsViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    factory { (tmdbId: Long, mediaType: RequestType) ->
+        SeerrMediaDetailsViewModel(tmdbId, mediaType, get(), get(), get(), get(), get(), get(), get())
+    }
     factory { ProwlarrIndexersViewModel(get(), get(), get()) }
     factory { ProwlarrSearchViewModel(get(), get(), get()) }
-    factory { RequestsViewModel(get(), get(), get()) }
-    factory { DownloadQueueViewModel(get(), get(), get(), get(), get()) }
+    factory { DownloadQueueViewModel(get(), get(), get(), get(), get(), get(), get()) }
     factory { (clientId: Long?) ->
         DownloadClientSettingsViewModel(clientId, get(), get(), get(), get(), get(), get()) }
     factory { DownloadClientsViewModel(get(), get(), get(), get(), get()) }
@@ -291,6 +336,15 @@ val viewModelModule = module {
     }
     factory { (webpageId: Long) ->
         CustomWebpageViewerViewModel(webpageId, get())
+    }
+    factory { (issuePackage: MediaIssuePackage) ->
+        IssueDetailsViewModel(issuePackage, get(), get(), get())
+    }
+    factory { (authorId: Long, book: Book) ->
+        BookDetailsViewModel(authorId, book, get(), get(), get(), get(), get(), get())
+    }
+    factory { (authorId: Long) ->
+        AuthorFilesViewModel(authorId, get())
     }
 }
 

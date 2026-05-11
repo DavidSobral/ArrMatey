@@ -57,7 +57,7 @@ struct EpisodeCalendarItem: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(episode.series?.title ?? MR.strings().unknown.localized())
                     .font(.headline)
-                    .foregroundColor(.themeOnTertiaryContainer)
+                    .foregroundColor(.black)
                 
                 Text("S\(episode.seasonNumber)E\(episode.episodeNumber) • \(episode.title ?? "")")
                     .font(.subheadline)
@@ -66,15 +66,15 @@ struct EpisodeCalendarItem: View {
                     if let airTime = airTime {
                         Text(airTime)
                             .font(.footnote)
-                            .foregroundColor(.themeOnTertiaryContainer)
+                            .foregroundColor(.black)
                     }
                     
                     if isPremier {
-                        BadgeView(text: MR.strings().premier.localized(), color: .themeOnTertiaryContainer)
+                        BadgeView(text: MR.strings().premier.localized(), color: .arrGrey)
                     }
                     
                     if let finaleType = episode.finaleType {
-                        BadgeView(text: finaleType.resource.localized(), color: .themeOnTertiaryContainer)
+                        BadgeView(text: finaleType.resource.localized(), color: .arrGrey)
                     }
                     
                     if !episodeGroup.additional.isEmpty {
@@ -90,11 +90,11 @@ struct EpisodeCalendarItem: View {
             if let icon = statusIcon {
                 Image(systemName: icon)
                     .font(.system(size: 18))
-                    .foregroundColor(.themeOnTertiaryContainer)
+                    .foregroundColor(.black)
             }
         }
         .padding()
-        .background(Color(.themeTertiaryContainer))
+        .background(.arrBlue)
         .cornerRadius(12)
     }
 }

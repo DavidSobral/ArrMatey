@@ -266,8 +266,7 @@ fun <T: ArrRelease> ReleaseItem(
                 onClick = { onItemClick?.invoke(item) },
                 enabled = onItemClick != null
             ),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
+        shape = RoundedCornerShape(10.dp)
     ) {
         ProgressBox(
             animate = animate
@@ -280,7 +279,7 @@ fun <T: ArrRelease> ReleaseItem(
                 Text(
                     text = item.title,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
 
@@ -297,7 +296,7 @@ fun <T: ArrRelease> ReleaseItem(
                 }
                 Text(
                     text = secondLine,
-                    maxLines = 1
+                    maxLines = 2
                 )
 
                 val thirdLine = listOf(
@@ -307,7 +306,7 @@ fun <T: ArrRelease> ReleaseItem(
                 ).joinToString(Bullet)
                 Text(
                     text = thirdLine,
-                    maxLines = 1
+                    maxLines = 2
                 )
             }
         }
